@@ -289,14 +289,6 @@
         <div class="input-group">
           <label><i class="fas fa-bolt"></i> Voltage (V)</label>
           <input type="number" id="V" value="220">
-
-        </div>
-        <div class="input-group">
-          <label><i class="fas fa-calculator"></i> 3-Phase Formula</label>
-          <select id="phaseFormula">
-            <option value="sqrt3" selected>√3 × V×I (Line V)</option>
-            <option value="three">3 × V×I (Phase V)</option>
-          </select>
         </div>
       </div>
       <div class="flex-row">
@@ -413,16 +405,15 @@
       const I = parseFloat(document.getElementById('I').value) || 5;
       const pf = parseFloat(document.getElementById('pf').value) || 1;
       const phase = parseInt(document.getElementById('phases').value) || 1;
-      const formula = document.getElementById('phaseFormula').value;
       const type = document.getElementById('type').value;
       const C = parseFloat(document.getElementById('constant').value) || 1000;
       const count = parseInt(document.getElementById('countInput').value) || 5;
       const limit = parseFloat(document.getElementById('limit').value) || 2.0;
 
-      // Power calculation
+      // Power calculation - using 3*V*I*PF for 3-phase
       let power;
       if (phase === 3) {
-        power = (formula === 'sqrt3') ? Math.sqrt(3) * V * I * pf : 3 * V * I * pf;
+        power = 3 * V * I * pf;
       } else {
         power = V * I * pf;
       }
@@ -438,7 +429,7 @@
       const totalTimeMs = timePerRevolutionMs * count;
 
       console.log('[TVJ] ========== TEST START ==========');
-      console.log('[TVJ] Phase:', phase, '- Formula:', formula);
+      console.log('[TVJ] Phase:', phase);
       console.log('[TVJ] V:', V, 'I:', I, 'pf:', pf);
       console.log('[TVJ] Power:', power.toFixed(2), 'W');
       console.log('[TVJ] Constant C:', C, 'rev/kWh');
