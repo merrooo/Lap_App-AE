@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <title>قياس الأحمال الكهربائية - نظام إدارة ومراقبة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* ===== Modern Mobile-App Layout & Index Matching Theme ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Cairo", sans-serif;
+        }
+
+        :root {
+            --primary: #004a99;
+            --primary-dark: #003366;
+            --accent: #0099ff;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --bg-page: #f7f8f9;
+            --card-bg: #ffffff;
+            --border-light: #e2e8f0;
+            --text-dark: #2c3e50;
+            --text-muted: #7f8c8d;
+            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        body {
+            background: var(--bg-page);
+            padding: 15px;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 25px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ===== Header Section ===== */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            border-bottom: 2px solid var(--border-light);
+            padding-bottom: 15px;
+        }
+
+        .header-title h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+
+        .header-title .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-right: 4px solid var(--primary);
+            padding-right: 10px;
+            margin-top: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* ===== Common App Buttons ===== */
+        .btn {
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 38px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-excel {
+            background: #217346;
+            color: white;
+        }
+
+        .btn-excel:hover {
+            background: #1a5c38;
+        }
+
+        .btn-standard {
+            background: #6c5ce7;
+            color: white;
+        }
+
+        .btn-standard:hover {
+            background: #5a4bd1;
+        }
+
+        .btn-save {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #219a52;
+        }
+
+        .btn-home {
+            background: var(--text-muted);
+            color: white;
+        }
+
+        .btn-home:hover {
+            background: #636e72;
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #0077cc;
+        }
+
+        /* ===== Main Layout Wrapper ===== */
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* ===== Left Sidebar (Database Records) ===== */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: #f8fafc;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            max-height: 750px;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 12px 15px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .sidebar-search {
+            padding: 10px;
+            background: white;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--accent);
+        }
+
+        .records-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .record-card {
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 10px;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .record-card:hover {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .record-card.active {
+            border-color: var(--accent);
+            background: #f0f8ff;
+            border-right: 4px solid var(--accent);
+        }
+
+        .record-card .badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        .record-card .title {
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            padding-left: 50px;
+        }
+
+        .record-card .meta {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .record-card .actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .record-card .actions button {
+            padding: 3px 8px;
+            font-size: 0.65rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-view-rec {
+            background: #f39c12;
+        }
+
+        .btn-del-rec {
+            background: var(--danger);
+        }
+
+        /* ===== Right Content (Forms & Table) ===== */
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: var(--radius-md);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 8px 12px;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            background: white;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.1);
+        }
+
+        .section-bar {
+            background: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .load-input-panel {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .load-fields-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .load-fields-row .field-sm {
+            width: 90px;
+        }
+
+        .load-fields-row .field-flex {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* Image Preview Area */
+        .edit-image-preview {
+            display: none;
+            padding: 10px;
+            background: white;
+            border-radius: var(--radius-sm);
+            border: 1px dashed var(--border-light);
+            align-items: center;
+            gap: 10px;
+        }
+
+        .edit-image-preview.show {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .image-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .photo-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .photo-wrapper img {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+        }
+
+        .photo-wrapper .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== Table Styling ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .loads-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 700px;
+            text-align: center;
+        }
+
+        .loads-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px 12px;
+            font-weight: 600;
+        }
+
+        .loads-table td {
+            border: 1px solid var(--border-light);
+            padding: 8px;
+        }
+
+        .loads-table tr:hover td {
+            background-color: #f1f8ff;
+        }
+
+        .loads-table tfoot tr {
+            background: #eef6ff;
+            font-weight: 700;
+        }
+
+        .loads-table tfoot td {
+            border-top: 3px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-tbl {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            margin: 0 2px;
+        }
+
+        .btn-tbl-edit {
+            background: #f39c12;
+        }
+
+        .btn-tbl-del {
+            background: var(--danger);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .pagination button {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-light);
+            background: white;
+            cursor: pointer;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ===== Mobile Responsiveness ===== */
+        @media (max-width: 850px) {
+            .main-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 220px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .load-fields-row .field-sm,
+            .load-fields-row .field-flex {
+                width: 100%;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Application Header -->
+        <div class="app-header">
+            <div class="header-title">
+                <h1><i class="fas fa-bolt"></i> قياس الأحمال الكهربائية</h1>
+                <div class="subtitle">نظام إدارة ومراقبة الأحمال العامة للمشتركين</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-excel" id="btnUploadExcel"><i class="fas fa-file-excel"></i> رفع Excel</button>
+                <button class="btn btn-standard" id="btnLoadStandard"><i class="fas fa-clipboard-list"></i> إضافة أحمال</button>
+                <button class="btn btn-save" id="btnSave"><i class="fas fa-save"></i> حفظ البيانات</button>
+                <button class="btn btn-home" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> الرئيسية</button>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Sidebar (Database Explorer) -->
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-database"></i> قاعدة البيانات</h3>
+                    <button class="btn-icon" id="refreshBtn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" id="sidebarSearch" placeholder="بحث باسم المشترك أو العداد...">
+                </div>
+                <div class="records-list" id="recordsList">
+                    <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <!-- Right Content Area -->
+            <div class="content-area">
+                <!-- Subscriber Information Grid -->
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>اسم المشترك</label>
+                        <input type="text" id="mname" placeholder="أدخل اسم المشترك">
+                    </div>
+                    <div class="input-group">
+                        <label>رقم العداد</label>
+                        <input type="text" id="mno" placeholder="أدخل رقم العداد">
+                    </div>
+                    <div class="input-group">
+                        <label>كود المشترك</label>
+                        <input type="text" id="mco" placeholder="أدخل الكود">
+                    </div>
+                    <div class="input-group" style="grid-column: 1 / -1;">
+                        <label>ملاحظات</label>
+                        <input type="text" id="notes" placeholder="ملاحظات إضافية...">
+                    </div>
+                    <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+                </div>
+
+                <!-- Load Entry Section Header -->
+                <div class="section-bar">
+                    <span><i class="fas fa-microchip"></i> إضافة أحمـــال جديدة</span>
+                    <span id="editingIndicator" style="display:none; color: #f1c40f;"><i class="fas fa-edit"></i> وضع التعديل</span>
+                </div>
+
+                <!-- Load Inputs Form Panel -->
+                <div class="load-input-panel">
+                    <div class="load-fields-row">
+                        <div class="input-group field-sm">
+                            <label>الفاز</label>
+                            <select id="phase_mode">
+                                <option value="1">1 فاز</option>
+                                <option value="3" selected>3 فاز</option>
+                            </select>
+                        </div>
+                        <div class="input-group field-sm">
+                            <label>العدد</label>
+                            <input type="number" id="count" value="1" min="1">
+                        </div>
+                        <div class="input-group field-sm">
+                            <label>P.F</label>
+                            <input type="number" id="newItemPF" value="0.92" step="0.01">
+                        </div>
+                        <div class="input-group field-sm">
+                            <label>أمبير</label>
+                            <input type="number" id="newItemA" placeholder="A">
+                        </div>
+                        <div class="input-group field-sm">
+                            <label>وات</label>
+                            <input type="number" id="newItemW" placeholder="W">
+                        </div>
+                        <div class="input-group field-sm">
+                            <label>حصان</label>
+                            <input type="number" id="newItemHP" placeholder="HP">
+                        </div>
+                        <div class="input-group field-flex">
+                            <label>وصف الحمل</label>
+                            <input type="text" id="newItemName" placeholder="مثال: مكيف هواي 1.5 حصان">
+                        </div>
+                        <button class="btn btn-add" id="btnAddLoad"><i class="fas fa-plus"></i> <span id="addBtnText">إضافة</span></button>
+                        <button class="btn" id="btnCancelEdit" style="background:#888; color:white; display:none;">إلغاء</button>
+                    </div>
+
+                    <!-- Photo Management for selected Load -->
+                    <div class="edit-image-preview" id="editImagePreview">
+                        <span style="font-size:0.8rem; font-weight:600;"><i class="fas fa-camera"></i> صور الحمل:</span>
+                        <div class="image-container" id="editImageContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Table Section Bar -->
+                <div class="section-bar">
+                    <span><i class="fas fa-list"></i> قائمة الأحمال المضافة</span>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-wrapper">
+                    <table class="loads-table">
+                        <thead>
+                            <tr>
+                                <th>وصف الحمل</th>
+                                <th>العدد</th>
+                                <th>وات</th>
+                                <th>حصان</th>
+                                <th>أمبير</th>
+                                <th>ك.وات</th>
+                                <th>حصان كلي</th>
+                                <th>الصور</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="4" style="text-align: right; padding-right:15px;">الإجمالي الكلي:</td>
+                                <td id="totalAmps">0.00</td>
+                                <td id="totalKW">0.00</td>
+                                <td id="totalHP">0.00</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div class="pagination">
+                        <button id="prevPage" disabled><i class="fas fa-chevron-right"></i> السابق</button>
+                        <span id="pageInfo" style="font-size:0.8rem; color:var(--text-muted);">الصفحة 1 من 1</span>
+                        <button id="nextPage" disabled>التالي <i class="fas fa-chevron-left"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Imports Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"
+            }
+        }
+    </script>
+
+    <!-- Main Logic Script -->
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getDatabase, ref, get, set, remove } from "firebase/database";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnKRhT5xJTBvsQKpW7e9w-hGSbAQJWTSo",
+            authDomain: "production1-ae85.firebaseapp.com",
+            projectId: "production1-ae85",
+            storageBucket: "production1-ae85.firebasestorage.app",
+            messagingSenderId: "490438031865",
+            appId: "1:490438031865:web:a4a69335989f30cd13a528"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // App States
+        let isLoading = false;
+        let currentMeterNo = null;
+        let editingRow = null;
+        let editingLoadName = null;
+        let allRecords = [];
+        let loadPhotos = {};
+        let allLoadsData = [];
+        let currentPage = 1;
+        const itemsPerPage = 8;
+
+        // DOM Elements
+        const mnameInput = document.getElementById("mname");
+        const mnoInput = document.getElementById("mno");
+        const mcoInput = document.getElementById("mco");
+        const notesInput = document.getElementById("notes");
+        const tableBody = document.getElementById("tableBody");
+        const totalKWSpan = document.getElementById("totalKW");
+        const totalHPSpan = document.getElementById("totalHP");
+        const totalAmpsSpan = document.getElementById("totalAmps");
+        const phaseMode = document.getElementById("phase_mode");
+        const countInput = document.getElementById("count");
+        const pfInput = document.getElementById("newItemPF");
+        const ampInput = document.getElementById("newItemA");
+        const wattInput = document.getElementById("newItemW");
+        const hpInput = document.getElementById("newItemHP");
+        const loadNameInput = document.getElementById("newItemName");
+        const btnSave = document.getElementById("btnSave");
+        const btnAddLoad = document.getElementById("btnAddLoad");
+        const btnCancelEdit = document.getElementById("btnCancelEdit");
+        const addBtnText = document.getElementById("addBtnText");
+        const editingIndicator = document.getElementById("editingIndicator");
+        const editImagePreview = document.getElementById("editImagePreview");
+        const editImageContainer = document.getElementById("editImageContainer");
+        const recordsList = document.getElementById("recordsList");
+        const sidebarSearch = document.getElementById("sidebarSearch");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const btnUploadExcel = document.getElementById("btnUploadExcel");
+        const btnLoadStandard = document.getElementById("btnLoadStandard");
+        const excelFileInput = document.getElementById("excelFileInput");
+        const prevPageBtn = document.getElementById("prevPage");
+        const nextPageBtn = document.getElementById("nextPage");
+        const pageInfo = document.getElementById("pageInfo");
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>'"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[m]);
+        }
+
+        function showLoading(msg = "جاري المعالجة...") {
+            if (isLoading) return;
+            isLoading = true;
+            Swal.fire({
+                title: msg,
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                showConfirmButton: false
+            });
+        }
+
+        function hideLoading() {
+            if (!isLoading) return;
+            isLoading = false;
+            Swal.close();
+        }
+
+        // Calculation Helpers
+        function calculateFromAmps(amps, pf = 0.92, mode = "3") {
+            const V = mode === "3" ? 380 : 220;
+            const factor = mode === "3" ? Math.sqrt(3) : 1;
+            const watts = factor * V * amps * pf;
+            return { watts, hp: watts / 746, amps };
+        }
+
+        function calculateFromWatts(watts, pf = 0.92, mode = "3") {
+            const V = mode === "3" ? 380 : 220;
+            const factor = mode === "3" ? Math.sqrt(3) : 1;
+            return { watts, amps: watts / (factor * V * pf), hp: watts / 746 };
+        }
+
+        function calculateFromHP(hp, pf = 0.92, mode = "3") {
+            const watts = hp * 746;
+            const V = mode === "3" ? 380 : 220;
+            const factor = mode === "3" ? Math.sqrt(3) : 1;
+            return { watts, amps: watts / (factor * V * pf), hp };
+        }
+
+        function calculateRowTotals(count, watts, hp, amps) {
+            const totalWatts = (watts || 0) * (count || 1);
+            return {
+                totalWatts,
+                totalHP: (hp || 0) * (count || 1),
+                totalAmps: (amps || 0) * (count || 1),
+                totalKW: totalWatts / 1000
+            };
+        }
+
+        function updateTotals() {
+            let totalKW = 0, totalHP = 0, totalAmps = 0;
+            allLoadsData.forEach(load => {
+                totalKW += parseFloat(load.totalKW) || 0;
+                totalHP += parseFloat(load.totalHP) || 0;
+                totalAmps += (parseFloat(load.amps) || 0) * (parseFloat(load.count) || 1);
+            });
+            totalKWSpan.innerText = totalKW.toFixed(2);
+            totalHPSpan.innerText = totalHP.toFixed(2);
+            totalAmpsSpan.innerText = totalAmps.toFixed(2);
+        }
+
+        // Live Calculation Event Handling
+        wattInput.addEventListener('input', () => {
+            let w = parseFloat(wattInput.value) || 0;
+            if (w > 0) {
+                let res = calculateFromWatts(w, parseFloat(pfInput.value) || 0.92, phaseMode.value);
+                ampInput.value = res.amps.toFixed(2);
+                hpInput.value = res.hp.toFixed(3);
+            }
+        });
+
+        hpInput.addEventListener('input', () => {
+            let hp = parseFloat(hpInput.value) || 0;
+            if (hp > 0) {
+                let res = calculateFromHP(hp, parseFloat(pfInput.value) || 0.92, phaseMode.value);
+                wattInput.value = res.watts.toFixed(0);
+                ampInput.value = res.amps.toFixed(2);
+            }
+        });
+
+        ampInput.addEventListener('input', () => {
+            let a = parseFloat(ampInput.value) || 0;
+            if (a > 0) {
+                let res = calculateFromAmps(a, parseFloat(pfInput.value) || 0.92, phaseMode.value);
+                wattInput.value = res.watts.toFixed(0);
+                hpInput.value = res.hp.toFixed(3);
+            }
+        });
+
+        // Table Pagination Rendering
+        function renderTablePage() {
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = allLoadsData.slice(start, end);
+
+            tableBody.innerHTML = '';
+            if (pageItems.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted); padding:20px;">لا توجد أحمال مضافة</td></tr>`;
+            } else {
+                pageItems.forEach(load => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).innerHTML = `<strong>${escapeHtml(load.item)}</strong>`;
+                    row.insertCell(1).innerText = load.count;
+                    row.insertCell(2).innerText = load.watts;
+                    row.insertCell(3).innerText = load.hp;
+                    row.insertCell(4).innerText = load.amps;
+                    row.insertCell(5).innerText = load.totalKW;
+                    row.insertCell(6).innerText = load.totalHP;
+                    
+                    const photoCell = row.insertCell(7);
+                    const photos = loadPhotos[load.item] || [];
+                    photoCell.innerText = photos.length ? `📷 (${photos.length})` : '-';
+
+                    const actionCell = row.insertCell(8);
+                    actionCell.innerHTML = `
+                        <button class="btn-tbl btn-tbl-edit"><i class="fas fa-edit"></i></button>
+                        <button class="btn-tbl btn-tbl-del"><i class="fas fa-trash"></i></button>
+                    `;
+
+                    actionCell.querySelector('.btn-tbl-edit').onclick = () => startEditRow(load.item);
+                    actionCell.querySelector('.btn-tbl-del').onclick = () => {
+                        delete loadPhotos[load.item];
+                        allLoadsData = allLoadsData.filter(l => l.item !== load.item);
+                        renderTablePage();
+                        updateTotals();
+                    };
+                });
+            }
+            updateTotals();
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(allLoadsData.length / itemsPerPage) || 1;
+            pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages}`;
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+        }
+
+        prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTablePage(); } };
+        nextPageBtn.onclick = () => { if (currentPage < Math.ceil(allLoadsData.length / itemsPerPage)) { currentPage++; renderTablePage(); } };
+
+        function addLoadToData(desc, count, watts, hp, amps) {
+            const totals = calculateRowTotals(count, watts, hp, amps);
+            allLoadsData.push({
+                item: desc,
+                count: count,
+                watts: watts || 0,
+                hp: hp ? hp.toFixed(3) : 0,
+                amps: totals.totalAmps.toFixed(2),
+                totalKW: totals.totalKW.toFixed(3),
+                totalHP: totals.totalHP.toFixed(3)
+            });
+            renderTablePage();
+        }
+
+        function startEditRow(itemName) {
+            const load = allLoadsData.find(l => l.item === itemName);
+            if (!load) return;
+
+            editingLoadName = itemName;
+            loadNameInput.value = load.item;
+            countInput.value = load.count;
+            wattInput.value = load.watts;
+            hpInput.value = load.hp;
+            ampInput.value = load.amps;
+
+            addBtnText.textContent = 'تحديث';
+            editingIndicator.style.display = 'inline';
+            btnCancelEdit.style.display = 'inline-flex';
+            btnAddLoad.style.background = '#f39c12';
+            showEditImagePreview(itemName);
+        }
+
+        function cancelEdit() {
+            editingLoadName = null;
+            addBtnText.textContent = 'إضافة';
+            editingIndicator.style.display = 'none';
+            btnCancelEdit.style.display = 'none';
+            btnAddLoad.style.background = 'var(--accent)';
+            editImagePreview.classList.remove('show');
+            loadNameInput.value = '';
+            countInput.value = '1';
+            wattInput.value = '';
+            hpInput.value = '';
+            ampInput.value = '';
+        }
+
+        btnCancelEdit.onclick = cancelEdit;
+
+        btnAddLoad.onclick = () => {
+            const desc = loadNameInput.value.trim();
+            const count = parseInt(countInput.value) || 1;
+            let watts = parseFloat(wattInput.value) || 0;
+            let hp = parseFloat(hpInput.value) || 0;
+            let amps = parseFloat(ampInput.value) || 0;
+
+            if (!desc) { Swal.fire("تنبيه", "يرجى إدخال وصف الحمل", "warning"); return; }
+
+            if (editingLoadName) {
+                allLoadsData = allLoadsData.filter(l => l.item !== editingLoadName);
+                if (editingLoadName !== desc && loadPhotos[editingLoadName]) {
+                    loadPhotos[desc] = loadPhotos[editingLoadName];
+                    delete loadPhotos[editingLoadName];
+                }
+                cancelEdit();
+            }
+
+            addLoadToData(desc, count, watts, hp, amps);
+            cancelEdit();
+        };
+
+        // Firebase Save & Sync
+        btnSave.onclick = async () => {
+            const meterNo = mnoInput.value.trim();
+            const name = mnameInput.value.trim();
+            if (!meterNo || !name) {
+                Swal.fire("تنبيه", "اسم المشترك ورقم العداد مطلوبان!", "warning");
+                return;
+            }
+
+            showLoading("جاري الحفظ...");
+            try {
+                let totalKW = 0, totalHP = 0, totalAmps = 0;
+                allLoadsData.forEach(l => {
+                    totalKW += parseFloat(l.totalKW) || 0;
+                    totalHP += parseFloat(l.totalHP) || 0;
+                    totalAmps += parseFloat(l.amps) * parseFloat(l.count);
+                });
+
+                const dataToSave = {
+                    name,
+                    meter_no: meterNo,
+                    code: mcoInput.value.trim(),
+                    description: notesInput.value.trim(),
+                    loads: allLoadsData,
+                    photos: loadPhotos,
+                    totalKW: totalKW.toFixed(2),
+                    totalHP: totalHP.toFixed(2),
+                    totalAmps: totalAmps.toFixed(2),
+                    lastUpdated: new Date().toISOString()
+                };
+
+                await set(ref(db, `Munipilation/${meterNo}`), dataToSave);
+                hideLoading();
+                Swal.fire("تم الحفظ", "تمت عملية الحفظ بنجاح", "success");
+                refreshSidebar();
+            } catch (err) {
+                hideLoading();
+                Swal.fire("خطأ", err.message, "error");
+            }
+        };
+
+        // Sidebar Database Explorer
+        async function refreshSidebar() {
+            try {
+                const snap = await get(ref(db, "Munipilation"));
+                const data = snap.val();
+                recordsList.innerHTML = '';
+                allRecords = [];
+
+                if (data) {
+                    Object.entries(data).forEach(([key, val]) => {
+                        allRecords.push({ key, ...val });
+                    });
+
+                    allRecords.forEach(rec => {
+                        const card = document.createElement('div');
+                        card.className = `record-card ${rec.key === currentMeterNo ? 'active' : ''}`;
+                        card.innerHTML = `
+                            <span class="badge">${rec.totalKW || '0'} KW</span>
+                            <div class="title">${escapeHtml(rec.name)}</div>
+                            <div class="meta">
+                                <span><i class="fas fa-id-card"></i> ${escapeHtml(rec.meter_no)}</span>
+                                <span><i class="fas fa-boxes"></i> ${rec.loads ? rec.loads.length : 0} أحمال</span>
+                            </div>
+                        `;
+                        card.onclick = () => loadRecordData(rec.key);
+                        recordsList.appendChild(card);
+                    });
+                } else {
+                    recordsList.innerHTML = `<div style="text-align:center; padding:15px; color:#aaa;">لا توجد سجلات</div>`;
+                }
+            } catch (err) {
+                recordsList.innerHTML = `<div style="text-align:center; color:red;">خطأ في الاتصال</div>`;
+            }
+        }
+
+        async function loadRecordData(meterNo) {
+            showLoading("جاري التحميل...");
+            try {
+                const snap = await get(ref(db, `Munipilation/${meterNo}`));
+                const data = snap.val();
+                hideLoading();
+                if (data) {
+                    mnameInput.value = data.name || '';
+                    mnoInput.value = data.meter_no || '';
+                    mcoInput.value = data.code || '';
+                    notesInput.value = data.description || '';
+                    allLoadsData = data.loads || [];
+                    loadPhotos = data.photos || {};
+                    currentMeterNo = meterNo;
+                    renderTablePage();
+                    refreshSidebar();
+                }
+            } catch (err) {
+                hideLoading();
+                Swal.fire("خطأ", "تعذر التحميل", "error");
+            }
+        }
+
+        function showEditImagePreview(loadName) {
+            const photos = loadPhotos[loadName] || [];
+            editImagePreview.classList.add('show');
+            editImageContainer.innerHTML = '';
+            
+            photos.forEach((p, idx) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'photo-wrapper';
+                wrapper.innerHTML = `<img src="${p}"><button class="remove-btn">✕</button>`;
+                wrapper.querySelector('.remove-btn').onclick = () => {
+                    loadPhotos[loadName].splice(idx, 1);
+                    showEditImagePreview(loadName);
+                    renderTablePage();
+                };
+                editImageContainer.appendChild(wrapper);
+            });
+        }
+
+        refreshBtn.onclick = refreshSidebar;
+        
+        // App Init
+        refreshSidebar();
+        renderTablePage();
+    </script>
+</body>
+
+</html>
