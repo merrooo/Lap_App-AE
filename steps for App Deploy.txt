@@ -221,3 +221,4 @@ npx cap copy
 npm install
 npx cap add android
 npx cap sync android
+npx ionic capacitor sync
