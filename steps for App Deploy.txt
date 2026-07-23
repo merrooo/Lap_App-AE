@@ -195,30 +195,71 @@ dir new folder
 {
   "appId": "com.yourcompany.powerfactor",
   "appName": "PowerFactor",
-  "webDir": "www",
-  "bundledWebRuntime": false
-}
-"@ > capacitor.config.json
+1) App identity
+ Change the app name in package.json
+ Change the version in package.json
+ Update the description in package.json
+2) Capacitor identity
+ Update capacitor.config.json
+ Change appName
+ Change appId
+ Change webDir if needed
+3) Android app identity
+ Update the package name in AndroidManifest.xml
+ Update the application ID in build.gradle
+ Update the Java package path in MainActivity.java
+4) App labels and branding
+ Update the app label in strings.xml
+ Replace launcher icons and splash assets in res
+5) Web content
+ Replace or update the files in Lab
+ Ensure index.html exists
+ Make sure the new app pages are linked correctly
+6) Ionic/Capacitor config
+ Check ionic.config.json
+ Keep it minimal unless you need extra Ionic behavior
+7) Install and sync
+ Run npm install
+ Run npx cap sync android
+8) Build
+ Run npx cap open android
+ Build the APK/AAB from Android Studio or Gradle
+9) Publishing prep
+ Create a new keystore for release
+ Configure signing for Android
+ Prepare Google Play listing and screenshots
+ Upload the release build
+Debugging checklist from your CI issues
+These were the main problems we fixed during the build/debugging process.
 
-------------------
-# Get the content for the json or any file in(powershell)
-Get-Content capacitor.config.json
-------------------
-# Get the content for the json or any file in(VSC)
-cat capacitor.config.json
-------------------
-# Get the code of any file
-code capacitor.config.json
-------------------
-***Run the build commands
-# Sync
-npx cap sync
-
-# Copy
-npx cap copy
-------------------
-# Run
+A) Web assets folder missing
+ Make sure the web assets folder exists
+ Ensure it contains index.html
+ Check that capacitor.config.json points to the correct webDir
+B) Android project missing wrapper files
+ Verify gradlew exists
+ Verify gradlew.bat exists
+ Re-run Capacitor Android setup if needed
+C) Capacitor CLI permission issue
+ Ensure the Capacitor CLI shims are executable
+ Avoid shell-based invocation if the runner is failing
+ Prefer the Node entrypoint in package.json
+D) Ionic sync configuration
+ Remove broken hooks from ionic.config.json
+ Add a valid build script entry if needed in package.json
+E) CI-safe install flow
+ Keep dependencies installed in the repo
+ Use a stable postinstall command
+ Verify the install and sync steps locally before pushing
+Recommended order
+Change app identity
+Change Android package name
+Replace web assets
+Run npm install
+Run npx cap sync android
+Build and test
+Prepare signing and publishing
+Quick commands to remember
 npm install
-npx cap add android
 npx cap sync android
-npx ionic capacitor sync
+npx cap open android
