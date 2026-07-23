@@ -6,19 +6,15 @@
   "scripts": {
     "build": "echo 'No web compilation needed'",
     "ionic:build": "npm run build",
-    "cap": "node ./scripts/cap.js",
-    "sync": "node ./scripts/cap.js sync",
-    "sync:android": "node ./scripts/cap.js sync android",
-    "postinstall": "node ./scripts/cap.js sync android"
-  },
-  "bin": {
-    "capacitor": "./bin/capacitor.js"
+    "cap": "npx cap",
+    "sync": "npx cap sync",
+    "sync:android": "npx cap sync android",
+    "postinstall": "npx cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.2.1",
     "@capacitor/core": "^6.0.0",
     "@capacitor/ios": "^6.0.0"
-  },
-  "devDependencies": {}
+  }
 }
