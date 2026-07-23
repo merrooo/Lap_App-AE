@@ -244,6 +244,32 @@
             margin-top: 8px;
             text-align: center;
         }
+
+        .btn-nav-back {
+            background: #2c3e50;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+            margin-bottom: 10px;
+            width: auto;
+            height: auto;
+        }
+
+        .btn-nav-back:hover {
+            background: #34495e;
+            transform: translateY(-1px);
+        }
+
+
     </style>
 </head>
 
@@ -251,6 +277,9 @@
 
     <div class="container">
         <h2>تكهين التلاعبات</h2>
+        <button class="btn-nav-back" onclick="window.location.href='index.html'">
+            ← الصفحة الرئيسية
+        </button>
 
         <!-- SECTION 1: ADD NEW RECORD -->
         <div class="section">
