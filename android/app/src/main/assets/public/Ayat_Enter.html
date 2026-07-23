@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>تسجيل دخول بيانات عداد المعمل الهندسي - Sequential Phase Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #f59e0b;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --error: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius-lg: 1.25rem;
+            --radius-md: 0.75rem;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding-bottom: 2rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+        }
+
+        .app-viewport {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Mobile App Header Bar */
+        .app-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.25);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .app-header h1 {
+            font-size: clamp(0.65rem, 3.5vw, 1.1rem);
+            font-weight: 500;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .app-header span {
+            font-size: clamp(0.65rem, 2.5vw, 0.75rem);
+            opacity: 0.85;
+            display: block;
+            font-weight: 400;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-nav-back {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            padding: 0.4rem 0.75rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .btn-nav-back:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .dark-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .dark-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Main Content Padding */
+        .app-content {
+            padding: 1rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Card Container Styles */
+        .app-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 0.85rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .section-header {
+            font-size: clamp(0.85rem, 3vw, 0.95rem);
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            border-right: 3px solid var(--accent);
+            padding-right: 0.4rem;
+        }
+
+        body.dark-mode .section-header {
+            color: var(--primary-light);
+        }
+
+        /* Form Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            width: 100%;
+        }
+
+        .form-field label {
+            font-weight: 700;
+            font-size: clamp(0.72rem, 2.5vw, 0.8rem);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .form-field label i {
+            color: var(--primary-light);
+        }
+
+        .inline-input,
+        .inline-select {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            font-size: clamp(0.78rem, 2.8vw, 0.85rem);
+            background: var(--bg-color);
+            color: var(--text-main);
+            outline: none;
+            font-weight: 600;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .inline-input:focus,
+        .inline-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .select-with-add {
+            display: flex;
+            gap: 0.4rem;
+            width: 100%;
+        }
+
+        .btn-add-option {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 38px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-add-option:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-save-row {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 2rem;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: clamp(0.85rem, 3vw, 0.95rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .btn-save-row:active {
+            transform: scale(0.98);
+        }
+
+        .inline-input[readonly] {
+            opacity: 0.75;
+            cursor: not-allowed;
+        }
+
+        /* Stats & Controls Bar */
+        .controls-stats-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .stats-chip {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 2rem;
+            padding: 0.35rem 0.85rem;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        @media (min-width: 480px) {
+            .stats-chip {
+                width: auto;
+            }
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 0.4rem;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        @media (min-width: 480px) {
+            .table-controls {
+                width: auto;
+            }
+        }
+
+        .btn-action-small {
+            border: none;
+            padding: 0.4rem 0.75rem;
+            border-radius: 2rem;
+            color: white;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            transition: opacity 0.2s;
+            flex: 1;
+        }
+
+        @media (min-width: 480px) {
+            .btn-action-small {
+                flex: none;
+            }
+        }
+
+        .btn-action-small:hover {
+            opacity: 0.9;
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: clamp(0.7rem, 2.2vw, 0.8rem);
+            min-width: 800px;
+        }
+
+        th {
+            background: var(--bg-color);
+            padding: 0.5rem 0.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+            font-size: clamp(0.68rem, 2.2vw, 0.78rem);
+        }
+
+        td {
+            padding: 0.5rem 0.4rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        .search-input,
+        .header-date,
+        .search-select-notes {
+            width: 100%;
+            padding: 0.25rem 0.4rem;
+            border-radius: 0.3rem;
+            border: 1px solid var(--border-color);
+            font-size: clamp(0.65rem, 2vw, 0.72rem);
+            background: var(--card-bg);
+            color: var(--text-main);
+            outline: none;
+            margin-top: 0.2rem;
+        }
+
+        .date-range {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .action-buttons-container {
+            display: flex;
+            gap: 0.3rem;
+            justify-content: center;
+        }
+
+        .btn-icon-edit,
+        .btn-icon-delete {
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 0.4rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-icon-edit {
+            background: var(--warning);
+        }
+
+        .btn-icon-delete {
+            background: var(--error);
+        }
+
+        /* Pagination */
+        .pagination-controls {
+            margin-top: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-pagination {
+            background: var(--primary);
+            padding: 0.35rem 0.85rem;
+            border-radius: 2rem;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-pagination:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-weight: 700;
+            font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Extra Mobile Adjustments */
+        @media (max-width: 600px) {
+            .app-header {
+                padding: 0.75rem 0.85rem;
+            }
+
+            .app-content {
+                padding: 0.65rem 0.5rem;
+            }
+
+            .app-card {
+                padding: 0.75rem;
+                border-radius: var(--radius-md);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 0.65rem;
+            }
+
+            .swal2-popup {
+                width: 90% !important;
+                font-size: 0.8rem !important;
+            }
+
+            .swal2-input, .swal2-select {
+                font-size: 0.8rem !important;
+                height: 2.2rem !important;
+                margin: 0.3rem auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-viewport">
+        <!-- Header Bar -->
+        <header class="app-header">
+            <div class="app-header-title">
+                <div>
+                    <h1><i class="fas fa-microchip"></i> تسجيل دخول عداد </h1>
+                    <span>Sequential Phase Analyzer</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="dark-toggle-btn" onclick="toggleDarkMode()" title="تبديل الوضع المظلم">
+                    <i class="fas fa-moon" id="darkIcon"></i>
+                </button>
+                <button class="btn-nav-back" onclick="window.location.href='index.html'">
+                    ⬅️ الرئيسة
+                </button>
+            </div>
+        </header>
+
+        <main class="app-content">
+            <!-- Form Card -->
+            <section class="app-card">
+                <div class="section-header"><i class="fas fa-pen-ruler"></i> إدخال بيانات عداد جديد</div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label><i class="fas fa-hashtag"></i> رقم العداد</label>
+                        <input type="text" id="inputMno" class="inline-input" placeholder="مثال: 12345678">
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-calendar-alt"></i> تاريخ الاستلام</label>
+                        <input type="date" id="inputDate" class="inline-input">
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-chart-line"></i> القطاع</label>
+                        <select id="inputKeta3" class="inline-select">
+                            <option value="">اختر القطاع</option>
+                            <option>دمياط</option>
+                            <option>شمال الدقهلية</option>
+                            <option>جنوب الدقهلية</option>
+                            <option>كفر الشيخ</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-draw-polygon"></i> الهندسة</label>
+                        <select id="inputHandsa" class="inline-select">
+                            <option value="">اختر الهندسة</option>
+                            <option>هندسة شمال دمياط</option>
+                            <option>هندسة جنوب دمياط</option>
+                            <option>هندسة عزبة البرج</option>
+                            <option>هندسة كفر سعد</option>
+                            <option>هندسة كفر البطيخ</option>
+                            <option>هندسة راس البر</option>
+                            <option>هندسة دمياط الجديدة</option>
+                            <option>هندسة الزرقا</option>
+                            <option>هندسة فارسكور</option>
+                            <option>هندسة الروضة</option>
+                            <option>هندسة الشعراء</option>
+                            <option>هندسة مدينة شربين</option>
+                            <option>هندسة قري شربين</option>
+                            <option>هندسة دكرنس</option>
+                            <option>هندسة جمصة</option>
+                            <option>هندسة قري بلقاس</option>
+                            <option>هندسة مدينة بلقاس</option>
+                            <option>هندسة الستاموني</option>
+                            <option>هندسة بني عبيد</option>
+                            <option>هندسة منية النصر</option>
+                            <option>هندسة ميت سلسيل</option>
+                            <option>هندسة الجمالية</option>
+                            <option>هندسة قري المنزلة</option>
+                            <option>هندسة مدينة المنزلة</option>
+                            <option>هندسة المطرية</option>
+                            <option>هندسة شرق المنصورة</option>
+                            <option>هندسة غرب المنصورة</option>
+                            <option>هندسة طلخا</option>
+                            <option>هندسة نبروه</option>
+                            <option>هندسة قري المنصورة 1</option>
+                            <option>هندسة قري المنصورة 2</option>
+                            <option>هندسة اجا</option>
+                            <option>هندسة مدينة السنبلاوين</option>
+                            <option>هندسة قري السنبلاوين</option>
+                            <option>هندسة تمي الامديد</option>
+                            <option>هندسة مدينة ميت غمر</option>
+                            <option>هندسة قري ميت غمر</option>
+                            <option>هندسة كوم النور</option>
+                            <option>هندسة مدينة كفر الشيخ</option>
+                            <option>هندسة غرب كفر الشيخ</option>
+                            <option>هندسة شرق كفر الشيخ</option>
+                            <option>هندسة قلين</option>
+                            <option>هندسة قرى سيدي سالم</option>
+                            <option>هندسة مدينة سيدي سالم</option>
+                            <option>هندسة الرياض</option>
+                            <option>هندسة مدينة دسوق</option>
+                            <option>هندسة قرى شمال دسوق</option>
+                            <option>هندسة قرى جنوب دسوق</option>
+                            <option>هندسة فوه</option>
+                            <option>هندسة مطوبس</option>
+                            <option>هندسة مدينة الحامول</option>
+                            <option>هندسة قرى الحامول</option>
+                            <option>هندسة بيلا</option>
+                            <option>هندسة بلطيم</option>
+                            <option>هندسة برج البرلس</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-bolt"></i> النشاط</label>
+                        <div class="select-with-add">
+                            <select id="inputNashat" class="inline-select">
+                                <option value="">اختر النشاط</option>
+                                <option>منزلي</option>
+                                <option>تجاري</option>
+                                <option>قوى محركة</option>
+                                <option>كودي مخالف</option>
+                                <option>ري</option>
+                                <option>مزارع</option>
+                                <option>مساجد</option>
+                                <option>استثمار صناعة</option>
+                                <option>كبار</option>
+                                <option>مصالح حكومية</option>
+                                <option>مصالح حكوميه اخري</option>
+                            </select>
+                            <button type="button" class="btn-add-option" onclick="addNewOption('inputNashat', 'النشاط')"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-tachometer-alt"></i> نوع العداد</label>
+                        <div class="select-with-add">
+                            <select id="inputMtype" class="inline-select">
+                                <option value="">اختر نوع العداد</option>
+                                <option>سويدى ثلاثى مباشر</option>
+                                <option>سويدي احادي</option>
+                                <option>اسكرا احادي</option>
+                                <option>المصريه احادي</option>
+                                <option>جلوبال ثلاثى مباشر</option>
+                                <option>جلوبال احادي</option>
+                                <option>جلوبال ثلاثى غير مباشر</option>
+                            </select>
+                            <button type="button" class="btn-add-option" onclick="addNewOption('inputMtype', 'نوع العداد')"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-clipboard-list"></i> اسباب الدخول</label>
+                        <div class="select-with-add">
+                            <select id="inputStatus" class="inline-select">
+                                <option value="">اختر اسباب الدخول</option>
+                                <option>الفحص</option>
+                                <option>التكهين</option>
+                                <option>فحص الشركة المصنعة</option>
+                            </select>
+                            <button type="button" class="btn-add-option" onclick="addNewOption('inputStatus', 'اسباب الدخول')"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label><i class="fas fa-sticky-note"></i> الغرض</label>
+                        <input type="text" id="inputNotes" class="inline-input" value="تم استلام عداد للفحص" readonly>
+                    </div>
+                    <div class="form-field" style="grid-column: 1 / -1;">
+                        <label><i class="fas fa-comment-dots"></i> ملاحظات الدخول</label>
+                        <input type="text" id="inputaddNotes" class="inline-input" placeholder="تفاصيل إضافية ...">
+                    </div>
+                </div>
+                <button class="btn-save-row" onclick="saveDirectInput()"><i class="fas fa-save"></i> حفظ بيانات العداد</button>
+            </section>
+
+            <!-- Search and Records Card -->
+            <section class="app-card">
+                <div class="section-header"><i class="fas fa-table-list"></i> سجلات العدادات والبحث</div>
+                
+                <div class="controls-stats-wrapper">
+                    <div class="stats-chip" id="totalSummary">
+                        <i class="fas fa-database"></i> إجمالي السجلات: 0 | النتائج: 0
+                    </div>
+                    <div class="table-controls">
+                        <button class="btn-action-small" onclick="refreshDatabase()" style="background:#0284c7;">
+                            <i class="fas fa-sync-alt"></i> تحديث
+                        </button>
+                        <button class="btn-action-small" onclick="exportExcel()" style="background:#10b981;">
+                            <i class="fas fa-file-excel"></i> تصدير Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table id="dataTable">
+                        <thead>
+                            <tr class="search-header-row">
+                                <th>
+                                    <div>رقم العداد</div>
+                                    <input type="text" class="search-input" id="searchMno" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>تاريخ الاستلام</div>
+                                    <div class="date-range">
+                                        <input type="date" class="header-date" id="startDate" onchange="filterTable()">
+                                        <input type="date" class="header-date" id="endDate" onchange="filterTable()">
+                                    </div>
+                                </th>
+                                <th>
+                                    <div>القطاع</div>
+                                    <input type="text" class="search-input" id="searchKeta3" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>الهندسة</div>
+                                    <input type="text" class="search-input" id="searchHandsa" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>النشاط</div>
+                                    <input type="text" class="search-input" id="searchNashat" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>نوع العداد</div>
+                                    <input type="text" class="search-input" id="searchMtype" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>اسباب الدخول</div>
+                                    <input type="text" class="search-input" id="searchStatus" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th>
+                                    <div>الغرض</div>
+                                    <select class="search-select-notes" id="searchNotes" onchange="filterTable()">
+                                        <option value="">الكل</option>
+                                        <option value="تم استلام عداد للفحص">تم استلام عداد للفحص</option>
+                                        <option value="تم الفحص">تم الفحص</option>
+                                        <option value="تم تسليم العداد-للهندسة">تم تسليم العداد-للهندسة</option>
+                                    </select>
+                                </th>
+                                <th>
+                                    <div>ملاحظات الدخول</div>
+                                    <input type="text" class="search-input" id="searchaddNotes" onkeyup="filterTable()" placeholder="بحث...">
+                                </th>
+                                <th style="text-align:center;">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-controls">
+                    <button id="prevBtn" class="btn-pagination" onclick="prevPage()"><i class="fas fa-chevron-right"></i> السابق</button>
+                    <span id="pageInfo" class="page-info">الصفحة 1 من 1</span>
+                    <button id="nextBtn" class="btn-pagination" onclick="nextPage()">التالي <i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getDatabase, ref, set, get, remove } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnKRhT5xJTBvsQKpW7e9w-hGSbAQJWTSo",
+            authDomain: "production1-ae85.firebaseapp.com",
+            projectId: "production1-ae85",
+            storageBucket: "production1-ae85.firebasestorage.app",
+            messagingSenderId: "490438031865",
+            appId: "1:490438031865:web:a4a69335989f30cd13a528"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let allData = [], filteredData = [], currentPage = 1;
+        const itemsPerPage = 10;
+
+        async function loadData() {
+            const snapshot = await get(ref(db, 'Ayat_Enter'));
+            allData = [];
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                Object.keys(data).forEach(key => { allData.push({ ...data[key], id: key }); });
+                allData.sort((a, b) => (b.enter_date || '').localeCompare(a.enter_date || ''));
+            }
+            filteredData = [...allData];
+            currentPage = 1;
+            renderTable();
+            updateStats();
+        }
+
+        window.saveDirectInput = async function () {
+            const mno = document.getElementById('inputMno').value.trim();
+            if (!mno) { Swal.fire("خطأ", "رقم العداد مطلوب", "error"); return; }
+            if (allData.some(item => item.mno === mno)) { Swal.fire("تنبيه", "رقم العداد موجود بالفعل", "warning"); return; }
+            const newRecord = {
+                mno: mno,
+                enter_date: document.getElementById('inputDate').value,
+                keta3: document.getElementById('inputKeta3').value,
+                handsa: document.getElementById('inputHandsa').value,
+                nashattype: document.getElementById('inputNashat').value,
+                mtype: document.getElementById('inputMtype').value,
+                status: document.getElementById('inputStatus').value,
+                notes: document.getElementById('inputNotes').value,
+                addnotes: document.getElementById('inputaddNotes').value
+            };
+            try {
+                await set(ref(db, `Ayat_Enter/${mno}`), newRecord);
+                Swal.fire("تم", "تم إضافة العداد بنجاح", "success");
+                document.getElementById('inputMno').value = '';
+                document.getElementById('inputKeta3').value = '';
+                document.getElementById('inputHandsa').value = '';
+                document.getElementById('inputNashat').value = '';
+                document.getElementById('inputMtype').value = '';
+                document.getElementById('inputStatus').value = '';
+                document.getElementById('inputaddNotes').value = '';
+                document.getElementById('inputDate').value = new Date().toISOString().slice(0, 10);
+                await loadData();
+            } catch (e) { Swal.fire("خطأ", "فشل الحفظ", "error"); }
+        };
+
+        window.addNewOption = async function (selectId, optionName) {
+            const { value: newValue } = await Swal.fire({ title: `إضافة ${optionName}`, input: 'text', inputPlaceholder: `أدخل ${optionName}`, showCancelButton: true });
+            if (newValue) {
+                const select = document.getElementById(selectId);
+                const option = document.createElement('option');
+                option.value = newValue; option.textContent = newValue;
+                select.appendChild(option);
+                select.value = newValue;
+                Swal.fire('تم', `تمت الإضافة`, 'success');
+            }
+        };
+
+        window.editRecord = async function (mno) {
+            const record = allData.find(r => r.mno === mno);
+            if (!record) return;
+            const notesOpts = ["تم استلام عداد للفحص", "تم الفحص", "تم تسليم العداد-للهندسة"];
+            const { value: form } = await Swal.fire({
+                title: 'تعديل البيانات',
+                html: `
+                <input id="edit-mno" class="swal2-input" value="${record.mno}" readonly style="background:#e9ecef">
+                <input id="edit-date" type="date" class="swal2-input" value="${record.enter_date || ''}">
+                <select id="edit-keta3" class="swal2-select">${['دمياط', 'شمال الدقهلية', 'جنوب الدقهلية', 'كفر الشيخ'].map(o => `<option ${record.keta3 === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+                <select id="edit-handsa" class="swal2-select">${Array.from(document.getElementById('inputHandsa').options).slice(1).map(opt => `<option ${record.handsa === opt.value ? 'selected' : ''}>${opt.value}</option>`).join('')}</select>
+                <select id="edit-nashat" class="swal2-select">${Array.from(document.getElementById('inputNashat').options).slice(1).map(opt => `<option ${record.nashattype === opt.value ? 'selected' : ''}>${opt.value}</option>`).join('')}</select>
+                <select id="edit-mtype" class="swal2-select">${Array.from(document.getElementById('inputMtype').options).slice(1).map(opt => `<option ${record.mtype === opt.value ? 'selected' : ''}>${opt.value}</option>`).join('')}</select>
+                <select id="edit-status" class="swal2-select">${Array.from(document.getElementById('inputStatus').options).slice(1).map(opt => `<option ${record.status === opt.value ? 'selected' : ''}>${opt.value}</option>`).join('')}</select>
+                <select id="edit-notes" class="swal2-select">${notesOpts.map(n => `<option ${record.notes === n ? 'selected' : ''}>${n}</option>`).join('')}</select>
+                <input id="edit-addnotes" class="swal2-input" value="${record.addnotes || ''}" placeholder="ملاحظات الدخول">
+            `,
+                focusConfirm: false, showCancelButton: true, confirmButtonText: 'حفظ',
+                preConfirm: () => ({
+                    mno: record.mno, enter_date: document.getElementById('edit-date').value,
+                    keta3: document.getElementById('edit-keta3').value, handsa: document.getElementById('edit-handsa').value,
+                    nashattype: document.getElementById('edit-nashat').value, mtype: document.getElementById('edit-mtype').value,
+                    status: document.getElementById('edit-status').value, notes: document.getElementById('edit-notes').value,
+                    addnotes: document.getElementById('edit-addnotes').value
+                })
+            });
+            if (form) { await set(ref(db, `Ayat_Enter/${mno}`), form); Swal.fire('تم التحديث'); await loadData(); }
+        };
+
+        window.deleteRecord = async function (mno) {
+            const confirm = await Swal.fire({ title: 'حذف', text: `حذف العداد ${mno}؟`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444' });
+            if (confirm.isConfirmed) { await remove(ref(db, `Ayat_Enter/${mno}`)); Swal.fire('تم الحذف'); await loadData(); }
+        };
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const pageItems = filteredData.slice(start, start + itemsPerPage);
+            pageItems.forEach(item => {
+                const row = tbody.insertRow();
+                ['mno', 'enter_date', 'keta3', 'handsa', 'nashattype', 'mtype', 'status', 'notes', 'addnotes'].forEach(f => {
+                    const cell = row.insertCell();
+                    if (f === 'enter_date') cell.textContent = item[f] ? item[f].split('-').reverse().join('/') : '—';
+                    else cell.textContent = item[f] || '—';
+                });
+                const act = row.insertCell();
+                act.className = 'action-buttons-container';
+                act.innerHTML = `<button class="btn-icon-edit" onclick="editRecord('${item.mno}')"><i class="fas fa-edit"></i></button><button class="btn-icon-delete" onclick="deleteRecord('${item.mno}')"><i class="fas fa-trash"></i></button>`;
+            });
+            updatePagination();
+        }
+
+        window.filterTable = function () {
+            const mno = document.getElementById('searchMno')?.value.toLowerCase() || '';
+            const start = document.getElementById('startDate')?.value || '';
+            const end = document.getElementById('endDate')?.value || '';
+            const k3 = document.getElementById('searchKeta3')?.value.toLowerCase() || '';
+            const hs = document.getElementById('searchHandsa')?.value.toLowerCase() || '';
+            const ns = document.getElementById('searchNashat')?.value.toLowerCase() || '';
+            const mt = document.getElementById('searchMtype')?.value.toLowerCase() || '';
+            const st = document.getElementById('searchStatus')?.value.toLowerCase() || '';
+            const noteF = document.getElementById('searchNotes')?.value || '';
+            const addN = document.getElementById('searchaddNotes')?.value.toLowerCase() || '';
+            filteredData = allData.filter(item => {
+                if (mno && !item.mno?.toLowerCase().includes(mno)) return false;
+                if (k3 && !item.keta3?.toLowerCase().includes(k3)) return false;
+                if (hs && !item.handsa?.toLowerCase().includes(hs)) return false;
+                if (ns && !item.nashattype?.toLowerCase().includes(ns)) return false;
+                if (mt && !item.mtype?.toLowerCase().includes(mt)) return false;
+                if (st && !item.status?.toLowerCase().includes(st)) return false;
+                if (noteF && item.notes !== noteF) return false;
+                if (addN && !item.addnotes?.toLowerCase().includes(addN)) return false;
+                const dt = item.enter_date || '';
+                if (start && dt < start) return false;
+                if (end && dt > end) return false;
+                return true;
+            });
+            currentPage = 1;
+            renderTable();
+            updateStats();
+        };
+
+        function updateStats() { document.getElementById('totalSummary').innerHTML = `<i class="fas fa-database"></i> إجمالي السجلات: ${allData.length} | <i class="fas fa-search"></i> نتائج البحث: ${filteredData.length}`; }
+        function updatePagination() { const total = Math.ceil(filteredData.length / itemsPerPage) || 1; document.getElementById('pageInfo').innerText = `الصفحة ${currentPage} من ${total}`; document.getElementById('prevBtn').disabled = currentPage === 1; document.getElementById('nextBtn').disabled = currentPage >= total; }
+        window.prevPage = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+        window.nextPage = () => { const total = Math.ceil(filteredData.length / itemsPerPage); if (currentPage < total) { currentPage++; renderTable(); } };
+        window.refreshDatabase = async () => { await loadData(); Swal.fire('تم التحديث'); };
+        window.exportExcel = () => {
+            const data = filteredData.map(i => ({ 'رقم العداد': i.mno, 'تاريخ الاستلام': i.enter_date?.split('-').reverse().join('/'), 'القطاع': i.keta3, 'الهندسة': i.handsa, 'النشاط': i.nashattype, 'نوع العداد': i.mtype, 'اسباب الدخول': i.status, 'ملاحظات': i.notes, 'ملاحظات الدخول': i.addnotes }));
+            const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "العدادات"); XLSX.writeFile(wb, `تقرير_عدادات_${new Date().toLocaleDateString()}.xlsx`);
+        };
+
+        window.toggleDarkMode = function () {
+            const darkIcon = document.getElementById('darkIcon');
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('darkMode', 'disabled');
+                darkIcon.className = 'fas fa-moon';
+            } else {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('darkMode', 'enabled');
+                darkIcon.className = 'fas fa-sun';
+            }
+        };
+
+        function checkDark() {
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark-mode');
+                const darkIcon = document.getElementById('darkIcon');
+                if (darkIcon) darkIcon.className = 'fas fa-sun';
+            }
+        }
+
+        window.onload = async () => {
+            checkDark();
+            document.getElementById('inputDate').value = new Date().toISOString().slice(0, 10);
+            await loadData();
+        };
+    </script>
+</body>
+
+</html>

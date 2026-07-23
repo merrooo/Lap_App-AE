@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <title>Meter Calibration</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --card: #394456;
+        --primary: #3b82f6;
+        --accent: #e74c3c;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --text: #f8fafc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        font-size: 0.82rem;
+      }
+
+      .home-link {
+        position: absolute;
+        top: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 5px 10px;
+        border-radius: 8px;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.75rem;
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        transition: all 0.3s ease;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .home-link:hover {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+      }
+
+      h1 {
+        font-size: 1rem;
+        text-align: center;
+        margin: 30px 0 10px 0;
+        color: var(--primary);
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      @media (min-width: 900px) {
+        .container {
+          flex-direction: row;
+          align-items: stretch;
+        }
+        .panel.config {
+          flex: 1;
+        }
+        .panel.live {
+          flex: 1.6;
+        }
+      }
+
+      .panel {
+        background: var(--card);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+        width: 100%;
+        border: 1px solid #334155;
+        display: flex;
+        flex-direction: column;
+      }
+
+      h2 {
+        margin-top: 0;
+        font-size: 0.85rem;
+        color: var(--primary);
+        border-bottom: 2px solid #334155;
+        padding-bottom: 4px;
+        margin-bottom: 10px;
+      }
+
+      .flex-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .input-group {
+        flex: 1 1 120px;
+        margin-bottom: 6px;
+        min-width: 0;
+      }
+
+      label {
+        display: block;
+        font-size: 0.68rem;
+        margin-bottom: 2px;
+        color: #94a3b8;
+        font-weight: bold;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 6px 8px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        color: white;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        outline: none;
+      }
+
+      .btn-container {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        gap: 12px;
+        margin-top: auto;
+        padding: 12px 0 5px 0;
+      }
+
+      .action-btn {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        font-size: 0.75rem;
+        font-weight: 800;
+        cursor: pointer;
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.2s;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      }
+
+      .action-btn:active {
+        transform: scale(0.9);
+      }
+
+      #startBtn {
+        background: var(--success);
+        color: white;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+      }
+
+      #stopBtn {
+        background: var(--primary);
+        color: white;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+      }
+
+      .action-btn:disabled {
+        opacity: 0.1;
+        filter: grayscale(1);
+        box-shadow: none;
+      }
+
+      .meter-box {
+        background: #000;
+        border: 2px solid #334155;
+        border-radius: 12px;
+        height: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+
+      .disc-container {
+        width: 85%;
+        height: 32px;
+        background: #1e293b;
+        border-radius: 16px;
+        position: relative;
+        border: 2px solid #475569;
+      }
+
+      .disc-center-line {
+        position: absolute;
+        left: 50%;
+        width: 3px;
+        height: 100%;
+        background: var(--accent);
+        z-index: 2;
+      }
+
+      .center-line-flash {
+        background: #fff !important;
+        box-shadow: 0 0 10px #fff;
+      }
+
+      #disc-mark {
+        position: absolute;
+        top: 50%;
+        width: 10px;
+        height: 22px;
+        background: var(--accent);
+        border-radius: 2px;
+        transform: translateY(-50%);
+        z-index: 3;
+      }
+
+      #pulse-led {
+        width: 36px;
+        height: 36px;
+        background: #1a1a1a;
+        border-radius: 50%;
+        border: 2px solid #333;
+      }
+
+      .big-display {
+        font-family: "Courier New", monospace;
+        font-size: clamp(1.8rem, 6vw, 2.8rem);
+        font-weight: bold;
+        text-align: center;
+        padding: 10px 5px;
+        background: #000;
+        color: var(--success);
+        margin-bottom: 10px;
+        border-radius: 12px;
+        border: 1px solid #1e293b;
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+      }
+
+      .stat {
+        background: #0f172a;
+        padding: 8px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #334155;
+      }
+
+      .stat small {
+        display: block;
+        font-size: 0.6rem;
+        color: #94a3b8;
+      }
+
+      .stat span {
+        font-size: 0.95rem;
+        font-weight: bold;
+        font-family: monospace;
+      }
+
+      .stat.wide {
+        grid-column: 1 / -1;
+        border-color: var(--primary);
+        background: #1e293b;
+      }
+
+      .stat.wide span {
+        font-size: 1.4rem;
+        color: var(--primary);
+      }
+
+      .export-btn {
+        background: var(--warning);
+        color: #000;
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 0.75rem;
+      }
+
+      .log-container {
+        margin-top: 10px;
+        width: 100%;
+        max-width: 1200px;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        background: var(--card);
+        border-radius: 12px;
+      }
+
+      table {
+        width: 100%;
+        min-width: 650px;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid #334155;
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="Control_Calc.html" class="home-link">
+      <span>🏠</span>
+      <span>Home</span>
+    </a>
+
+    <h1>Meter Calibration</h1>
+
+    <div class="container">
+      <div class="panel config">
+        <h2>Configuration</h2>
+        <div class="input-group">
+          <label>Meter Serial No.</label>
+          <input type="text" id="mno" placeholder="TVJ-XXXX" />
+        </div>
+
+        <div class="flex-row">
+          <div class="input-group">
+            <label>AVG-Voltage (V)</label>
+            <input type="number" id="V" value="220"/>
+          </div>
+          <div class="input-group">
+            <label>AVG-Current (I)</label>
+            <input type="number" id="I" value="5" />
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <div class="input-group">
+            <label>AVG-P.F</label>
+            <input type="number" id="pf" value="1" />
+          </div>
+          <div class="input-group">
+            <label>Constant (C)</label>
+            <input type="number" id="constant" value="400" />
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <div class="input-group">
+            <label>Test Revs (n)</label>
+            <input type="number" id="countInput" value="5" />
+          </div>
+          <div class="input-group">
+            <label>Limit / Class (%)</label>
+            <select id="limit">
+              <option value="0.2">Class 0.2</option>
+              <option value="0.5">Class 0.5</option>
+              <option value="1.0">Class 1.0</option>
+              <option value="2.0" selected>Class 2.0</option>
+              <option value="2.5">Class 2.5</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex-row">
+          <div class="input-group">
+            <label>Meter Type</label>
+            <select id="type" onchange="toggleUI()">
+              <option value="mech">Mechanical</option>
+              <option value="digi">Digital</option>
+              <option value="digi">Prepaid</option>
+              <option value="digi">Smart</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-container">
+          <button id="startBtn" class="action-btn" onclick="runTest()">
+            <span style="font-size: 1.6rem">▶</span><span>START</span>
+          </button>
+          <button id="stopBtn" class="action-btn" onclick="stopTest()" disabled>
+            <span style="font-size: 1.6rem">💾</span><span>LOG</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel live">
+        <h2>Live Measurement</h2>
+        <div
+          id="pass-counter"
+          style="
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+          "
+        >
+          READY
+        </div>
+        <div class="meter-box" id="mech-ui">
+          <div class="disc-container">
+            <div class="disc-center-line"></div>
+            <div id="disc-mark" style="left: 50%"></div>
+          </div>
+        </div>
+        <div class="meter-box" id="digi-ui" style="display: none">
+          <div id="pulse-led"></div>
+        </div>
+        <div class="big-display" id="live-error-display">0.000%</div>
+        <div class="status-grid">
+          <div class="stat">
+            <small>POWER (W)</small><span id="live-p">0.0</span>
+          </div>
+          <div class="stat">
+            <small>ENERGY (Wh)</small><span id="live-e">0.0000</span>
+          </div>
+          <div class="stat wide">
+            <small>CHRONOMETER</small><span id="timer">0.00s</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log-container panel">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 10px;
+        "
+      >
+        <h2>Calibration Log</h2>
+        <button class="export-btn" onclick="exportToExcel()">
+          EXPORT EXCEL (.CSV)
+        </button>
+      </div>
+      <div class="table-wrapper">
+        <table id="logTable">
+          <thead>
+            <tr>
+              <th>Serial No</th>
+              <th>Type</th>
+              <th>Error %</th>
+              <th>Constant</th>
+              <th>Class</th>
+              <th>Current</th>
+              <th>Result</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      let timerInt, simInt, startTime, elapsed;
+
+      function toggleUI() {
+        const type = document.getElementById("type").value;
+        document.getElementById("mech-ui").style.display =
+          type === "mech" ? "flex" : "none";
+        document.getElementById("digi-ui").style.display =
+          type === "digi" ? "flex" : "none";
+      }
+
+      function runTest() {
+        const V = +document.getElementById("V").value,
+          I = +document.getElementById("I").value,
+          type = document.getElementById("type").value,
+          C = +document.getElementById("constant").value,
+          count = +document.getElementById("countInput").value,
+          limit = +document.getElementById("limit").value,
+          pf = +document.getElementById("pf").value;
+
+        // Power calculation: P = V * I * pf
+        const power = V * I * pf;
+
+        document.getElementById("startBtn").disabled = true;
+        document.getElementById("stopBtn").disabled = false;
+        startTime = Date.now();
+        let rotationPhase = 0,
+          lastPassCount = 0;
+
+        timerInt = setInterval(() => {
+          elapsed = (Date.now() - startTime) / 1000;
+          const E_true = (power * elapsed) / 3600,
+            E_meter = (count * 1000) / C,
+            error = ((E_meter - E_true) / E_meter) * 100;
+
+          document.getElementById("timer").innerText = `${elapsed.toFixed(2)}s`;
+          document.getElementById("live-e").innerText = E_true.toFixed(4);
+          document.getElementById("live-p").innerText = power.toFixed(1);
+
+          const errEl = document.getElementById("live-error-display");
+          errEl.innerText =
+            (Math.abs(error) > 999 ? "---" : error.toFixed(3)) + "%";
+          errEl.style.color = Math.abs(error) <= limit ? "#22c55e" : "#ef4444";
+        }, 50);
+
+        const idealTime = (count * 3600 * 1000) / (power * C);
+
+        if (type === "mech") {
+          const targetRounds = count + 1,
+            radPerSec = (targetRounds * 2 * Math.PI) / idealTime;
+          simInt = setInterval(() => {
+            rotationPhase += radPerSec * 0.03;
+            const currentRound = Math.floor(rotationPhase / (2 * Math.PI));
+            document.getElementById("pass-counter").innerText =
+              `PASS: ${currentRound} / ${targetRounds}`;
+            if (currentRound > lastPassCount) {
+              const line = document.querySelector(".disc-center-line");
+              line.classList.add("center-line-flash");
+              setTimeout(() => line.classList.remove("center-line-flash"), 150);
+              lastPassCount = currentRound;
+            }
+            const mark = document.getElementById("disc-mark"),
+              radius =
+                document.querySelector(".disc-container").offsetWidth / 2 - 20;
+            mark.style.left = `calc(50% + ${Math.sin(rotationPhase) * radius}px)`;
+            mark.style.opacity = Math.cos(rotationPhase) > 0 ? "1" : "0";
+          }, 30);
+        } else {
+          const targetPulses = count + 1,
+            pulseInterval = (idealTime * 1000) / (targetPulses - 1);
+          let pulsesPerformed = 0;
+          const flashLED = (current) => {
+            document.getElementById("pass-counter").innerText =
+              `PULSE: ${current} / ${targetPulses}`;
+            const led = document.getElementById("pulse-led");
+            led.style.background = "#22c55e";
+            led.style.boxShadow = "0 0 15px #22c55e";
+            setTimeout(() => {
+              led.style.background = "#1a1a1a";
+              led.style.boxShadow = "none";
+            }, 100);
+          };
+          pulsesPerformed++;
+          flashLED(pulsesPerformed);
+          simInt = setInterval(() => {
+            if (pulsesPerformed < targetPulses) {
+              pulsesPerformed++;
+              flashLED(pulsesPerformed);
+            }
+          }, pulseInterval);
+        }
+      }
+
+      function stopTest() {
+        clearInterval(timerInt);
+        clearInterval(simInt);
+        document.getElementById("startBtn").disabled = false;
+        document.getElementById("stopBtn").disabled = true;
+
+        const mno = document.getElementById("mno").value || "TVJ-LAB";
+
+        // Get the Arabic Text for Meter Type
+        const typeSelect = document.getElementById("type");
+        const type = typeSelect.options[typeSelect.selectedIndex].text;
+
+        const errorStr =
+          document.getElementById("live-error-display").innerText;
+        const constant = document.getElementById("constant").value;
+        const limitVal = document.getElementById("limit").value;
+        const currentVal = document.getElementById("I").value;
+
+        const isPass = Math.abs(parseFloat(errorStr)) <= parseFloat(limitVal);
+        const row = document.querySelector("#logTable tbody").insertRow(0);
+
+        row.innerHTML = `
+          <td>${mno}</td>
+          <td>${type}</td>
+          <td style="color:${isPass ? "#22c55e" : "#ef4444"}; font-weight:bold">${errorStr}</td>
+          <td>${constant}</td>
+          <td>${limitVal}%</td>
+          <td>${currentVal}A</td>
+          <td style="font-weight:bold; color:${isPass ? "#22c55e" : "#ef4444"}">${isPass ? "PASS" : "FAIL"}</td>
+          <td>
+            <button onclick="this.parentElement.parentElement.remove()" style="padding:4px 8px; background:#475569; border:none; color:white; border-radius:6px; font-size: 0.7rem;">DEL</button>
+          </td>`;
+      }
+
+      function exportToExcel() {
+        let csv = [];
+        const rows = document.querySelectorAll("table tr");
+        for (let i = 0; i < rows.length; i++) {
+          let row = [],
+            cols = rows[i].querySelectorAll("td, th");
+          for (let j = 0; j < cols.length - 1; j++) {
+            row.push('"' + cols[j].innerText.trim() + '"');
+          }
+          csv.push(row.join(","));
+        }
+        const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+        const downloadLink = document.createElement("a");
+        downloadLink.download = `Calibration_Log.csv`;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+      }
+    </script>
+  </body>
+</html>

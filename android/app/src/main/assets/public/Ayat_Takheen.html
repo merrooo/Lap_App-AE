@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تكهين التلاعبات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Cairo", sans-serif;
+        }
+
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 8px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 17px;
+            text-align: center;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        h3 {
+            font-size: 13px;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        .section {
+            background: #fdfdfd;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        @media (min-width: 600px) {
+            .controls-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            font-size: 13px;
+            width: 100%;
+            background-color: #fff;
+            appearance: none;
+            -webkit-appearance: none;
+            height: 36px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn-container {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+            flex-direction: column;
+        }
+
+        @media (min-width: 600px) {
+            .btn-container {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            width: 100%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            height: 36px;
+            transition: opacity 0.2s;
+        }
+
+        @media (min-width: 600px) {
+            button {
+                width: auto;
+            }
+        }
+
+        .btn-add {
+            background-color: #2ecc71;
+        }
+
+        .btn-export {
+            background-color: #3498db;
+        }
+
+        .btn-delete {
+            background-color: #e74c3c;
+            padding: 4px 10px;
+            font-size: 11px;
+            width: auto;
+            height: 28px;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        button:disabled {
+            background-color: #95a5a6 !important;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* Responsive Table Design for Mobile */
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th,
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #334155;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+
+        /* Card view transformation on narrow screens */
+        @media (max-width: 600px) {
+            thead {
+                display: none;
+            }
+
+            tr {
+                display: flex;
+                flex-direction: column;
+                border-bottom: 1.5px solid #cbd5e1;
+                padding: 8px;
+                background-color: #fff;
+            }
+
+            tr:nth-child(even) {
+                background-color: #f8fafc;
+            }
+
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px dashed #f1f5f9;
+                padding: 4px 0;
+            }
+
+            td:last-child {
+                border-bottom: none;
+                padding-top: 6px;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #64748b;
+                font-size: 11px;
+            }
+        }
+
+        .no-data {
+            text-align: center;
+            color: #64748b;
+            padding: 16px;
+            display: block;
+            font-size: 12px;
+        }
+
+        .status-msg {
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>تكهين التلاعبات</h2>
+
+        <!-- SECTION 1: ADD NEW RECORD -->
+        <div class="section">
+            <h3>إضافة عداد</h3>
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label for="addSerial">رقم العداد</label>
+                    <input type="text" id="addSerial" placeholder="أدخل رقم العداد">
+                </div>
+
+                <div class="input-group">
+                    <label for="addBag">الرقم / الحقيبة</label>
+                    <input type="text" id="addBag" placeholder="أدخل الرقم">
+                </div>
+
+                <div class="input-group">
+                    <label for="addDate">التاريخ</label>
+                    <input type="date" id="addDate">
+                </div>
+            </div>
+
+            <div class="btn-container">
+                <button id="addBtn" class="btn-add">حفظ البيانات</button>
+            </div>
+            <div id="addStatus" class="status-msg"></div>
+        </div>
+
+        <!-- SECTION 2: FILTERS & TABLE DISPLAY -->
+        <div class="section">
+
+            <!-- Filters Grid -->
+            <div class="controls-grid">
+                <div class="input-group">
+                    <label for="filterSerial">بحث برقم العداد</label>
+                    <input type="text" id="filterSerial" placeholder="ابحث برقم العداد...">
+                </div>
+
+                <div class="input-group">
+                    <label for="filterDate">بحث بالتاريخ</label>
+                    <input type="date" id="filterDate">
+                </div>
+            </div>
+
+            <!-- Export Button -->
+            <div class="btn-container">
+                <button id="exportBtn" class="btn-export" disabled>تصدير إكسيل</button>
+            </div>
+
+            <!-- Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم العداد</th>
+                            <th>الرقم</th>
+                            <th>التاريخ</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="4" class="no-data">جاري الاتصال بقاعدة البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAnKRhT5xJTBvsQKpW7e9w-hGSbAQJWTSo",
+            authDomain: "production1-ae85.firebaseapp.com",
+            databaseURL: "https://production1-ae85-default-rtdb.firebaseio.com",
+            projectId: "production1-ae85",
+            storageBucket: "production1-ae85.firebasestorage.app",
+            messagingSenderId: "490438031865",
+            appId: "1:490438031865:web:a4a69335989f30cd13a528",
+            measurementId: "G-W3TZ1EKWWN"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const dbRef = ref(database, 'Ayat_Takheen');
+
+        // DOM Elements
+        const addSerialInput = document.getElementById('addSerial');
+        const addBagInput = document.getElementById('addBag');
+        const addDateInput = document.getElementById('addDate');
+        const addBtn = document.getElementById('addBtn');
+        const addStatus = document.getElementById('addStatus');
+
+        const filterSerialInput = document.getElementById('filterSerial');
+        const filterDateInput = document.getElementById('filterDate');
+        const exportBtn = document.getElementById('exportBtn');
+        const tableBody = document.getElementById('tableBody');
+
+        let databaseCache = [];
+        let currentFilteredData = [];
+        let initialLoadDone = false;
+
+        // Set date inputs to current date on initial load
+        const todayDateStr = new Date().toISOString().split('T')[0];
+        addDateInput.value = todayDateStr;
+        filterDateInput.value = todayDateStr;
+
+        // --- HELPER: ROBUST KEY & VALUE EXTRACTION ---
+        function extractRecordValue(item, possibleKeys) {
+            for (const key of Object.keys(item)) {
+                if (key === '_dbKey') continue;
+                const lowerKey = key.toLowerCase().replace(/[^a-z0-9أ-ي]/gi, '');
+                for (const p of possibleKeys) {
+                    if (lowerKey.includes(p.toLowerCase().replace(/[^a-z0-9أ-ي]/gi, ''))) {
+                        const val = item[key];
+                        return val !== undefined && val !== null ? String(val).trim() : '';
+                    }
+                }
+            }
+            return '';
+        }
+
+        function normalizeRecord(item, key) {
+            let serial = extractRecordValue(item, ['serialnumber', 'serial', 'sn', 'عداد', 'رقمعداد', 'رقم_العداد']);
+            let bag = extractRecordValue(item, ['bag', 'page', 'pg', 'الرقم', 'شنطة', 'حقيبة']);
+            let date = extractRecordValue(item, ['date', 'created', 'تاريخ', 'التاريخ']);
+
+            const values = Object.keys(item).filter(k => k !== '_dbKey').map(k => String(item[k]));
+            if (!serial && values[0]) serial = values[0];
+            if (!bag && values[1]) bag = values[1];
+            if (!date && values[2]) date = values[2];
+
+            return {
+                _dbKey: key,
+                serialNumber: serial || '---',
+                bag: bag || '---',
+                date: date || '---'
+            };
+        }
+
+        // --- 1. ADD RECORD ---
+        addBtn.addEventListener('click', async () => {
+            const serial = addSerialInput.value.trim();
+            const bag = addBagInput.value.trim();
+            const date = addDateInput.value;
+
+            if (!serial && !bag && !date) {
+                addStatus.innerText = "يرجى ملء حقل واحد على الأقل للحفظ.";
+                addStatus.style.color = "#c0392b";
+                return;
+            }
+
+            addBtn.disabled = true;
+            addStatus.innerText = "جاري حفظ البيانات...";
+            addStatus.style.color = "#d35400";
+
+            try {
+                const newRecord = {
+                    "Serial Number": serial,
+                    "Bag": bag,
+                    "Date": date
+                };
+
+                await push(dbRef, newRecord);
+
+                addStatus.innerText = "تم حفظ البيانات بنجاح!";
+                addStatus.style.color = "#27ae60";
+
+                addSerialInput.value = '';
+                addBagInput.value = '';
+                addDateInput.value = new Date().toISOString().split('T')[0];
+            } catch (error) {
+                console.error("Error saving record:", error);
+                addStatus.innerText = `خطأ في الحفظ: ${error.message}`;
+                addStatus.style.color = "#c0392b";
+            } finally {
+                addBtn.disabled = false;
+            }
+        });
+
+        // --- 2. REALTIME FIREBASE WATCHER ---
+        onValue(dbRef, (snapshot) => {
+            databaseCache = [];
+
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnap) => {
+                    const rawItem = childSnap.val();
+                    if (rawItem) {
+                        if (typeof rawItem === 'object') {
+                            databaseCache.push(normalizeRecord(rawItem, childSnap.key));
+                        } else {
+                            databaseCache.push({
+                                _dbKey: childSnap.key,
+                                serialNumber: String(rawItem),
+                                bag: '---',
+                                date: '---'
+                            });
+                        }
+                    }
+                });
+
+                exportBtn.disabled = (databaseCache.length === 0);
+
+                if (!initialLoadDone) {
+                    initialLoadDone = true;
+                    const hasTodayRecords = databaseCache.some(i => i.date.includes(todayDateStr));
+                    if (!hasTodayRecords) {
+                        filterDateInput.value = ''; 
+                    }
+                }
+
+                applyFilters();
+            } else {
+                exportBtn.disabled = true;
+                tableBody.innerHTML = `<tr><td colspan="4" class="no-data">لا توجد بيانات مسجلة في 'Ayat_Takheen'.</td></tr>`;
+            }
+        }, (error) => {
+            exportBtn.disabled = true;
+            console.error("Firebase read error:", error);
+            tableBody.innerHTML = `<tr><td colspan="4" class="no-data" style="color:red;">تم رفض صلاحية القراءة. تحقق من قواعد Firebase.</td></tr>`;
+        });
+
+        // --- 3. TABLE RENDERER ---
+        function renderTable(dataArray) {
+            tableBody.innerHTML = '';
+
+            if (dataArray.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="no-data">لا توجد نتائج تطابق البحث.</td></tr>`;
+                return;
+            }
+
+            const rowsHtml = dataArray.map(item => {
+                return `
+                    <tr>
+                        <td data-label="رقم العداد">${item.serialNumber}</td>
+                        <td data-label="الرقم">${item.bag}</td>
+                        <td data-label="التاريخ">${item.date}</td>
+                        <td data-label="الإجراءات"><button class="btn-delete" data-key="${item._dbKey}">حذف</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            tableBody.innerHTML = rowsHtml;
+
+            document.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const key = e.target.getAttribute('data-key');
+                    deleteRecord(key);
+                });
+            });
+        }
+
+        // --- 4. DELETE RECORD FROM FIREBASE ---
+        async function deleteRecord(key) {
+            if (!key) return;
+
+            if (confirm("هل أنت تأكد من رغبتك في حذف هذا السجل؟")) {
+                try {
+                    const recordRef = ref(database, `Ayat_Takheen/${key}`);
+                    await remove(recordRef);
+                } catch (error) {
+                    console.error("Error deleting record:", error);
+                    alert(`فشل الحذف: ${error.message}`);
+                }
+            }
+        }
+
+        // --- 5. FILTER ENGINE ---
+        function applyFilters() {
+            const serialQuery = filterSerialInput.value.toLowerCase().trim();
+            const selectedDate = filterDateInput.value;
+
+            currentFilteredData = databaseCache.filter(item => {
+                const matchesSerial = !serialQuery || item.serialNumber.toLowerCase().includes(serialQuery);
+
+                let matchesDate = !selectedDate;
+                if (selectedDate && item.date) {
+                    matchesDate = item.date.includes(selectedDate);
+                }
+
+                return matchesSerial && matchesDate;
+            });
+
+            renderTable(currentFilteredData);
+        }
+
+        filterSerialInput.addEventListener('input', applyFilters);
+        filterDateInput.addEventListener('change', applyFilters);
+
+        // --- 6. EXPORT CURRENT VIEW TO EXCEL ---
+        exportBtn.addEventListener('click', () => {
+            if (currentFilteredData.length === 0) {
+                alert("لا توجد بيانات متاحة للتصدير.");
+                return;
+            }
+
+            const cleanExportData = currentFilteredData.map(item => ({
+                "رقم العداد": item.serialNumber,
+                "الرقم": item.bag,
+                "التاريخ": item.date
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(cleanExportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Table Export");
+
+            XLSX.writeFile(workbook, "Ayat_Takheen_Export.xlsx");
+        });
+    </script>
+
+</body>
+
+</html>

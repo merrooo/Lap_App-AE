@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Toolbox · Control</title>
+    <!-- Font & Icons (Inter + SF Symbols style) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: #f2f5fa;
+            /* soft, modern base */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 18px 14px 32px;
+            margin: 0;
+            color: #0b1b33;
+        }
+
+        /* mobile-first container — feels like an app */
+        .app-container {
+            max-width: 420px;
+            width: 100%;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* header – minimal, bold, with subtle accent */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 4px;
+        }
+
+        .app-header h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #0b1b33 0%, #1e3a6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .app-header h1 span {
+            background: #d0e0ff;
+            padding: 4px 10px 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: #1a4b8c;
+            -webkit-text-fill-color: #1a4b8c;
+            background: #e9effa;
+            margin-left: 2px;
+        }
+
+        .header-icon {
+            background: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 20, 50, 0.04);
+            font-size: 1.4rem;
+            color: #1a4b8c;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        /* grid — clean, spacious, with haptic-feel cards */
+        .tool-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* card = modern, elevated, with a subtle glass vibe */
+        .tool-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border-radius: 20px;
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 24px -8px rgba(0, 20, 40, 0.06), 0 2px 6px rgba(0,0,0,0.02);
+            transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .tool-card:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 12px rgba(0, 20, 40, 0.04);
+        }
+
+        /* left side: icon + text */
+        .card-content {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .icon-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: #f0f5ff;
+            color: #1a4b8c;
+            flex-shrink: 0;
+            transition: 0.15s;
+        }
+
+        /* variant backgrounds — fresh */
+        .icon-badge.green {
+            background: #e6f7ed;
+            color: #0f7b4a;
+        }
+        .icon-badge.purple {
+            background: #f0ebff;
+            color: #6d4bcb;
+        }
+        .icon-badge.amber {
+            background: #fef4e6;
+            color: #b45f1b;
+        }
+        .icon-badge.rose {
+            background: #fce9ed;
+            color: #b33a4a;
+        }
+        .icon-badge.teal {
+            background: #e2f3f2;
+            color: #127a7a;
+        }
+        .icon-badge.indigo {
+            background: #e4e9fc;
+            color: #384b9e;
+        }
+        .icon-badge.slate {
+            background: #eef2f6;
+            color: #2c3e5c;
+        }
+
+        .text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .tool-name {
+            font-size: 1rem;
+            font-weight: 620;
+            letter-spacing: -0.01em;
+            color: #0b1b33;
+            line-height: 1.2;
+        }
+
+        .tool-sub {
+            font-size: 0.7rem;
+            font-weight: 450;
+            color: #64748b;
+            letter-spacing: 0.2px;
+            opacity: 0.8;
+        }
+
+        /* right side: subtle arrow or badge */
+        .card-meta {
+            display: flex;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            font-weight: 300;
+            padding-left: 6px;
+            transition: 0.15s;
+        }
+
+        .card-meta span {
+            background: #f1f5f9;
+            border-radius: 30px;
+            padding: 4px 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #475569;
+            letter-spacing: 0.3px;
+        }
+
+        .tool-card:hover .card-meta {
+            color: #2563eb;
+        }
+
+        /* small footer/divider – not necessary, but adds polish */
+        .app-footer {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 500;
+            color: #94a3b8;
+            letter-spacing: 0.4px;
+            border-top: 1px solid rgba(148, 163, 184, 0.2);
+            padding-top: 18px;
+        }
+
+        /* no extra decoration – clean, app-like */
+        @media (max-width: 380px) {
+            .tool-name { font-size: 0.9rem; }
+            .icon-badge { width: 42px; height: 42px; font-size: 1.3rem; }
+        }
+
+        /* subtle animation on load */
+        .tool-card {
+            animation: fadeUp 0.3s ease-out forwards;
+            opacity: 0;
+        }
+
+        .tool-card:nth-child(1) { animation-delay: 0.02s; }
+        .tool-card:nth-child(2) { animation-delay: 0.06s; }
+        .tool-card:nth-child(3) { animation-delay: 0.10s; }
+        .tool-card:nth-child(4) { animation-delay: 0.14s; }
+        .tool-card:nth-child(5) { animation-delay: 0.18s; }
+        .tool-card:nth-child(6) { animation-delay: 0.22s; }
+        .tool-card:nth-child(7) { animation-delay: 0.26s; }
+        .tool-card:nth-child(8) { animation-delay: 0.30s; }
+
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+
+        <!-- header: minimal, with "beta" chip -->
+        <div class="app-header">
+            <h1>
+                🧰 لوحة التكم
+                <span>AE</span>
+            </h1>
+            <div class="header-icon">⚡</div>
+        </div>
+
+        <!-- tool grid – all links preserved, with fresh naming & icons -->
+        <div class="tool-grid">
+
+            <!-- 1: تسجيل دخول عداد المعمل -->
+            <a href="Ayat_Enter.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge">📋</div>
+                    <div class="text-group">
+                        <span class="tool-name">تسجيل دخول عداد</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 2: تكهين عدادات -->
+            <a href="Ayat_Takheen.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge green">⚙️</div>
+                    <div class="text-group">
+                        <span class="tool-name">تکهین العدادات</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 3: معامل القدرة -->
+            <a href="P.F.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge purple">🔢</div>
+                    <div class="text-group">
+                        <span class="tool-name">معامل القدرة</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 4: تحليل الزوايا -->
+            <a href="Angles_Losses.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge amber">📐</div>
+                    <div class="text-group">
+                        <span class="tool-name">تحليل الزوايا</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 5: حسابات القدرة -->
+            <a href="Power.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge rose">⚡</div>
+                    <div class="text-group">
+                        <span class="tool-name">حسابات القدرة</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 6: معايرة عداد -->
+            <a href="TVJ.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge teal">📏</div>
+                    <div class="text-group">
+                        <span class="tool-name">معايرة عداد</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 7: PDF ⇄ Images -->
+            <a href="Convert_Pic_pdf.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge indigo">🖼️</div>
+                    <div class="text-group">
+                        <span class="tool-name">PDF ⇄ Images</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+            <!-- 8: اضافة وقياس احمال -->
+            <a href="Add_Loads.html" class="tool-card">
+                <div class="card-content">
+                    <div class="icon-badge slate">📊</div>
+                    <div class="text-group">
+                        <span class="tool-name">إضافة وقياس أحمال</span>
+                    </div>
+                </div>
+                <div class="card-meta">→</div>
+            </a>
+
+        </div>
+
+        <!-- tiny footer for balance -->
+        <div class="app-footer">
+            <span>Amir</span>
+        </div>
+    </div>
+</body>
+</html>
