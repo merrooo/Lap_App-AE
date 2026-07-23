@@ -5,10 +5,10 @@
   "main": "index.html",
   "scripts": {
     "build": "echo 'No web compilation needed'",
-    "cap": "npx cap",
-    "sync": "npx cap sync",
-    "sync:android": "npx cap sync android",
-    "postinstall": "npx cap sync android"
+    "cap": "node ./node_modules/@capacitor/cli/bin/capacitor",
+    "sync": "node ./node_modules/@capacitor/cli/bin/capacitor sync",
+    "sync:android": "node ./node_modules/@capacitor/cli/bin/capacitor sync android",
+    "postinstall": "node ./node_modules/@capacitor/cli/bin/capacitor sync android"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
