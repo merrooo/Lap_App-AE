@@ -5,6 +5,7 @@
   "main": "index.html",
   "scripts": {
     "build": "echo 'No web compilation needed'",
+    "ionic:build": "npm run build",
     "cap": "node ./scripts/cap.js",
     "sync": "node ./scripts/cap.js sync",
     "sync:android": "node ./scripts/cap.js sync android",

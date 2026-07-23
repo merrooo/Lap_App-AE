@@ -3,8 +3,5 @@
   "type": "custom",
   "integrations": {
     "capacitor": {}
-  },
-  "hooks": {
-    "build:before": "npm install"
   }
 }
