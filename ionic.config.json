@@ -1,0 +1,10 @@
+{
+  "name": "Lab App",
+  "type": "custom",
+  "integrations": {
+    "capacitor": {}
+  },
+  "hooks": {
+    "build:before": "npm install"
+  }
+}

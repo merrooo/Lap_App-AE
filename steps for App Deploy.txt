@@ -1,0 +1,219 @@
+Step 1: Create Project Folder & Navigate
+# Create folder (if not already created)
+mkdir power-factor-app
+
+# Navigate into it
+cd power-factor-app
+------------------
+Step 2: Initialize package.json
+npm init -y
+Optional: Edit package.json to customize:
+{
+  "name": "power-factor-app",
+  "version": "1.0.0",
+  "description": "Power Factor Calculator App",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build complete'"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}
+------------------
+Step 3: Create capacitor.config.json
+{
+  "appId": "com.powerfactor.app",
+  "appName": "Power Factor App",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  }
+}
+------------------
+Step 4: Create ionic.config.json
+{
+  "name": "Power Factor App",
+  "type": "custom",
+  "integrations": {
+    "capacitor": {}
+  }
+}
+------------------
+Step 5: Create App Folder & Required Files
+# Create for Example (PF folder)
+mkdir PF
+------------------
+Create index.html
+------------------
+Create manifest.json
+------------------
+Create sw.js
+------------------
+Step 6: Install Dependencies
+# Install Ionic CLI globally (if not installed)
+npm install -g @ionic/cli
+
+# Install Capacitor locally
+npm install @capacitor/core @capacitor/cli @capacitor/android
+
+# Install Capacitor assets plugin
+npm install @capacitor/assets
+------------------
+Step 7: Initialize Ionic Project (if not already)
+ionic init --type=custom
+------------------
+Step 8: Add Android Platform
+npx cap add android
+------------------
+Step 9: Copy Web Assets to Android
+npx cap copy
+------------------
+Step 10 Sync Your Project
+npx cap sync android
+------------------
+Step 11: Build APK
+cd android
+.\gradlew.bat assembleDebug
+cd ..
+------------------
+📦 Complete Final File Structure
+power-factor-app/
+├── www/
+│   ├── index.html          ✅ Created
+│   ├── manifest.json       ✅ Created
+│   └── sw.js              ✅ Created
+├── package.json           ✅ Created (npm init)
+├── package-lock.json      ✅ Created (auto-generated)
+├── capacitor.config.json  ✅ Created
+├── ionic.config.json      ✅ Created
+├── node_modules/          ✅ Created (npm install)
+├── android/               ✅ Created (npx cap add android)
+└── .gitignore             👉 Optional but recommended
+------------------
+🎯 Quick One-Command Setup
+# Create all files
+cat > package.json << 'EOF'
+{
+  "name": "power-factor-app",
+  "version": "1.0.0",
+  "description": "Power Factor Calculator App",
+  "main": "index.js",
+  "scripts": {
+    "build": "echo 'Build complete'"
+  },
+  "author": "",
+  "license": "MIT"
+}
+EOF
+
+cat > capacitor.config.json << 'EOF'
+{
+  "appId": "com.powerfactor.app",
+  "appName": "Power Factor App",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
+EOF
+
+cat > ionic.config.json << 'EOF'
+{
+  "name": "Power Factor App",
+  "type": "custom",
+  "integrations": {
+    "capacitor": {}
+  }
+}
+EOF
+
+mkdir -p www
+cd www
+
+cat > index.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Factor App</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <h1>⚡ Power Factor App</h1>
+  <p>Your app is ready!</p>
+</body>
+</html>
+EOF
+
+cat > manifest.json << 'EOF'
+{
+  "name": "Power Factor App",
+  "short_name": "PowerFactor",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50"
+}
+EOF
+
+touch sw.js
+
+cd ..
+
+# Install dependencies
+npm install @capacitor/core @capacitor/cli @capacitor/android
+npm install -g @ionic/cli
+
+# Initialize Ionic
+ionic init --type=custom
+
+# Add Android
+npx cap add android
+
+# Copy files
+npx cap copy
+------------------
+✅ After Setup - Build APK
+cd android
+.\gradlew.bat assembleDebug
+cd ..
+------------------
+# Navigate into PF
+cd PF
+# Create a new folder
+mkdir PF
+------------------
+# Copy your files to new folder
+copy index.html www\
+copy manifest.json www\
+copy sw.js www\
+------------------
+# List all files in the new folder
+dir new folder
+------------------
+@"
+{
+  "appId": "com.yourcompany.powerfactor",
+  "appName": "PowerFactor",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
+"@ > capacitor.config.json
+
+------------------
+# Get the content for the json or any file in(powershell)
+Get-Content capacitor.config.json
+------------------
+# Get the content for the json or any file in(VSC)
+cat capacitor.config.json
+------------------
+# Get the code of any file
+code capacitor.config.json
+------------------
+***Run the build commands
+# Sync
+npx cap sync
+
+# Copy
+npx cap copy
+------------------

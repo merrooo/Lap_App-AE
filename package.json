@@ -1,0 +1,21 @@
+{
+  "name": "Lab App",
+  "version": "1.0.0",
+  "description": "منصة أدوات فحص وتكهين وحسابات العدادات والقدرة",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No web compilation needed'",
+    "cap": "npx cap",
+    "sync": "npx cap sync",
+    "sync:android": "npx cap sync android",
+    "postinstall": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/ios": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.1"
+  }
+}

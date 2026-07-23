@@ -1,0 +1,15 @@
+{
+  "appId": "com.yourcompany.labapp",
+  "appName": "Lab App",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "Lab",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}
