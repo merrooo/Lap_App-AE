@@ -12,22 +12,37 @@ Optional: Edit package.json to customize:
   "name": "power-factor-app",
   "version": "1.0.0",
   "description": "Power Factor Calculator App",
-  "main": "index.js",
-  "scripts": {
-    "build": "echo 'Build complete'"
+  "main": "index.html",
+ "scripts": {
+    "build": "echo 'No web compilation needed'",
+    "ionic:build": "npm run build",
+    "fix:cap": "node ./scripts/fix-cap-bin.js",
+    "cap": "node ./node_modules/@capacitor/cli/bin/capacitor",
+    "sync": "node ./node_modules/@capacitor/cli/bin/capacitor sync",
+    "sync:android": "node ./node_modules/@capacitor/cli/bin/capacitor sync android",
+    "postinstall": "node ./scripts/fix-cap-bin.js && node ./node_modules/@capacitor/cli/bin/capacitor sync android"
   },
-  "author": "Your Name",
-  "license": "MIT"
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/cli": "^8.4.2",
+    "@capacitor/core": "^8.4.2"
+  }
 }
 ------------------
 Step 3: Create capacitor.config.json
 {
   "appId": "com.powerfactor.app",
   "appName": "Power Factor App",
-  "webDir": "www",
+  "webDir": "PF",
   "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
+    "npmClient": "npm",
+   "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "android": {
+    "allowMixedContent": true
   }
 }
 ------------------
@@ -54,8 +69,8 @@ Step 6: Install Dependencies
 # Install Ionic CLI globally (if not installed)
 npm install -g @ionic/cli
 
-# Install Capacitor locally
-npm install @capacitor/core @capacitor/cli @capacitor/android
+# Install Capacitor locally(node_modules)
+npm install 
 
 # Install Capacitor assets plugin
 npm install @capacitor/assets
@@ -63,7 +78,7 @@ npm install @capacitor/assets
 Step 7: Initialize Ionic Project (if not already)
 ionic init --type=custom
 ------------------
-Step 8: Add Android Platform
+Step 8: Add Android Platform(android)
 npx cap add android
 ------------------
 Step 9: Copy Web Assets to Android
@@ -72,10 +87,13 @@ npx cap copy
 Step 10 Sync Your Project
 npx cap sync android
 ------------------
-Step 11: Build APK
-cd android
-.\gradlew.bat assembleDebug
-cd ..
+Create .npmrc file
+copy the below and past it
+
+optional=false
+audit=false
+fund=false
+
 ------------------
 📦 Complete Final File Structure
 power-factor-app/
@@ -91,175 +109,19 @@ power-factor-app/
 ├── android/               ✅ Created (npx cap add android)
 └── .gitignore             👉 Optional but recommended
 ------------------
-🎯 Quick One-Command Setup
-# Create all files
-cat > package.json << 'EOF'
-{
-  "name": "power-factor-app",
-  "version": "1.0.0",
-  "description": "Power Factor Calculator App",
-  "main": "index.js",
-  "scripts": {
-    "build": "echo 'Build complete'"
-  },
-  "author": "",
-  "license": "MIT"
-}
-EOF
+for change the App icon
+Open this folder:
+C:\Users\Pc\Desktop\MD_App-AE\android\app\src\main\res
+Inside it, go to the mipmap folders:
+mipmap-hdpi
+mipmap-mdpi
+mipmap-xhdpi
+mipmap-xxhdpi
+mipmap-xxxhdpi
+Replace the existing icon files with your new PNG:
+ic_launcher.png
+ic_launcher_round.png
+ic_launcher_foreground.png
+Important:
 
-cat > capacitor.config.json << 'EOF'
-{
-  "appId": "com.powerfactor.app",
-  "appName": "Power Factor App",
-  "webDir": "www",
-  "bundledWebRuntime": false
-}
-EOF
-
-cat > ionic.config.json << 'EOF'
-{
-  "name": "Power Factor App",
-  "type": "custom",
-  "integrations": {
-    "capacitor": {}
-  }
-}
-EOF
-
-mkdir -p www
-cd www
-
-cat > index.html << 'EOF'
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Power Factor App</title>
-  <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <h1>⚡ Power Factor App</h1>
-  <p>Your app is ready!</p>
-</body>
-</html>
-EOF
-
-cat > manifest.json << 'EOF'
-{
-  "name": "Power Factor App",
-  "short_name": "PowerFactor",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4CAF50"
-}
-EOF
-
-touch sw.js
-
-cd ..
-
-# Install dependencies
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npm install -g @ionic/cli
-
-# Initialize Ionic
-ionic init --type=custom
-
-# Add Android
-npx cap add android
-
-# Copy files
-npx cap copy
-------------------
-✅ After Setup - Build APK
-cd android
-.\gradlew.bat assembleDebug
-cd ..
-------------------
-# Navigate into PF
-cd PF
-# Create a new folder
-mkdir PF
-------------------
-# Copy your files to new folder
-copy index.html www\
-copy manifest.json www\
-copy sw.js www\
-------------------
-# List all files in the new folder
-dir new folder
-------------------
-@"
-{
-  "appId": "com.yourcompany.powerfactor",
-  "appName": "PowerFactor",
-1) App identity
- Change the app name in package.json
- Change the version in package.json
- Update the description in package.json
-2) Capacitor identity
- Update capacitor.config.json
- Change appName
- Change appId
- Change webDir if needed
-3) Android app identity
- Update the package name in AndroidManifest.xml
- Update the application ID in build.gradle
- Update the Java package path in MainActivity.java
-4) App labels and branding
- Update the app label in strings.xml
- Replace launcher icons and splash assets in res
-5) Web content
- Replace or update the files in Lab
- Ensure index.html exists
- Make sure the new app pages are linked correctly
-6) Ionic/Capacitor config
- Check ionic.config.json
- Keep it minimal unless you need extra Ionic behavior
-7) Install and sync
- Run npm install
- Run npx cap sync android
-8) Build
- Run npx cap open android
- Build the APK/AAB from Android Studio or Gradle
-9) Publishing prep
- Create a new keystore for release
- Configure signing for Android
- Prepare Google Play listing and screenshots
- Upload the release build
-Debugging checklist from your CI issues
-These were the main problems we fixed during the build/debugging process.
-
-A) Web assets folder missing
- Make sure the web assets folder exists
- Ensure it contains index.html
- Check that capacitor.config.json points to the correct webDir
-B) Android project missing wrapper files
- Verify gradlew exists
- Verify gradlew.bat exists
- Re-run Capacitor Android setup if needed
-C) Capacitor CLI permission issue
- Ensure the Capacitor CLI shims are executable
- Avoid shell-based invocation if the runner is failing
- Prefer the Node entrypoint in package.json
-D) Ionic sync configuration
- Remove broken hooks from ionic.config.json
- Add a valid build script entry if needed in package.json
-E) CI-safe install flow
- Keep dependencies installed in the repo
- Use a stable postinstall command
- Verify the install and sync steps locally before pushing
-Recommended order
-Change app identity
-Change Android package name
-Replace web assets
-Run npm install
-Run npx cap sync android
-Build and test
-Prepare signing and publishing
-Quick commands to remember
-npm install
-npx cap sync android
-npx cap open android
+** Keep the same file names for you new image
