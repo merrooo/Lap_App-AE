@@ -1,1025 +1,506 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تحليل زوايا و الفقد - Sequential Phase Analyzer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محلل الزوايا والأخطاء</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', system-ui, sans-serif; }
         :root {
-            --primary: #1e3a8a;
-            --primary-light: #3b82f6;
-            --accent: #f59e0b;
-            --bg-color: #f1f5f9;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            --error: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --radius-lg: 1.25rem;
-            --radius-md: 0.75rem;
-            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
-            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --blue: #2563eb; --gold: #f59e0b; --red: #dc2626;
+            --green: #10b981; --violet: #8b5cf6;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            padding-bottom: 2rem;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            min-height: 100vh; display: flex; justify-content: center;
+            align-items: flex-start; padding: 1.5rem;
         }
-
-        .app-viewport {
-            width: 100%;
-            max-width: 1200px;
-            display: flex;
-            flex-direction: column;
+        .master-container {
+            max-width: 1400px; width: 100%; display: flex;
+            flex-wrap: wrap; gap: 2rem; align-items: flex-start;
         }
-
-        /* Mobile App Header Bar */
-        .app-header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-            color: white;
-            padding: 1.25rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 20px rgba(30, 58, 138, 0.25);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        .analytics-panel {
+            flex: 1.4; min-width: 400px;
+            background: rgba(255,255,255,0.96); backdrop-filter: blur(2px);
+            border-radius: 2rem; padding: 1.8rem;
+            box-shadow: 0 25px 40px -12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(37,99,235,0.2);
         }
-
-        .app-header-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .phasor-panel {
+            flex: 1; min-width: 340px;
+            background: rgba(255,255,255,0.96); border-radius: 2rem;
+            padding: 1.5rem; box-shadow: 0 25px 40px -12px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; align-items: center;
+            position: sticky; top: 1.5rem;
         }
-
-        .app-header h1 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            line-height: 1.2;
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin-bottom: 1.5rem;
+            border-bottom: 2px dashed #cbd5e1; padding-bottom: 0.75rem; gap: 1rem;
         }
-
-        .app-header span {
-            font-size: 0.75rem;
-            opacity: 0.85;
-            display: block;
-            font-weight: 400;
+        h2 {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(125deg, #0f172a, #1e40af);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
         }
-
-        .btn-nav-back {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 2rem;
-            font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
+        .btn-back {
+            border: none; background: var(--blue); color: white;
+            padding: 0.6rem 1.2rem; border-radius: 2rem; font-weight: 700;
+            cursor: pointer; font-size: 0.85rem; transition: 0.2s;
         }
+        .btn-back:hover { background: #1e40af; transform: scale(0.97); }
 
-        .btn-nav-back:hover {
-            background: rgba(255, 255, 255, 0.25);
+        .section-title {
+            font-weight: 700; font-size: 0.9rem; margin: 1.2rem 0 0.75rem 0;
+            border-right: 4px solid var(--gold); padding-right: 12px; color: #1e293b;
+            display: flex; align-items: center; gap: 0.4rem;
         }
-
-        /* Main Grid Content */
-        .app-content {
-            padding: 1.25rem;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.25rem;
-        }
-
-        @media (min-width: 992px) {
-            .app-content {
-                grid-template-columns: 1.3fr 1fr;
-            }
-        }
-
-        /* Card Container Styles */
-        .app-card {
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-        }
-
-        .section-header {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            border-right: 4px solid var(--accent);
-            padding-right: 0.6rem;
-        }
-
-        /* Input Grid */
         .angle-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
         }
-
         .angle-card {
-            background: #f8fafc;
-            border-radius: var(--radius-md);
-            padding: 0.6rem 0.5rem;
-            text-align: center;
-            border: 1px solid #e2e8f0;
-            transition: border-color 0.2s ease;
+            background: #f8fafc; border-radius: 1rem; padding: 0.7rem;
+            text-align: center; border-bottom: 3px solid var(--blue);
         }
-
-        .angle-card:focus-within {
-            border-color: var(--primary-light);
-            background: #fff;
-        }
-
         .phase-label {
-            font-weight: 800;
-            font-size: 0.75rem;
-            display: block;
-            margin-bottom: 0.35rem;
+            font-weight: 800; font-size: 0.78rem; display: block; margin-bottom: 6px;
+        }
+        .angle-card input {
+            width: 100%; background: white; border: 1px solid #cbd5e6;
+            border-radius: 10px; padding: 8px 4px; font-weight: 700;
+            text-align: center; font-size: 0.9rem; outline: none; transition: 0.15s;
+        }
+        .angle-card input:focus {
+            border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+        }
+        .kwh-row {
+            display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;
+            background: #f1f5f9; padding: 0.8rem 1rem; border-radius: 1rem;
+        }
+        .kwh-row label { font-weight: 700; font-size: 0.85rem; color: #334155; }
+        .kwh-row input {
+            flex: 1; padding: 0.6rem; border: 1px solid #cbd5e6;
+            border-radius: 10px; font-weight: 700; text-align: center;
+            font-size: 0.95rem; outline: none;
         }
 
-        .input-group input {
-            width: 100%;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            padding: 0.5rem 0.25rem;
-            font-weight: 700;
-            text-align: center;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            outline: none;
+        .angles-summary {
+            background: #f8fafc; border-radius: 1rem; padding: 0.7rem 1rem;
+            border: 1px solid #e2e8f0; font-size: 0.78rem; margin-bottom: 0.75rem;
         }
-
-        .input-group input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        .detail-row {
+            display: flex; justify-content: space-between; padding: 3px 0;
+            color: #334155;
         }
+        .detail-row strong { color: #0f172a; }
 
-        .import-group {
-            background: #f8fafc;
-            padding: 0.85rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            margin-bottom: 1rem;
+        /* Comparison */
+        .comparison-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
         }
-
-        .import-group label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 0.4rem;
+        .comparison-card {
+            border-radius: 1rem; padding: 1rem; border: 2px solid transparent;
         }
-
-        /* Results & Metrics Box */
-        .result-module {
-            background: #f8fafc;
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border-color);
+        .comparison-card.current {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-color: #f59e0b;
         }
-
-        .status-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
-            font-weight: 800;
-            font-size: 0.8rem;
-            margin-bottom: 0.85rem;
-            width: 100%;
-            justify-content: center;
+        .comparison-card.corrected {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-color: #10b981;
         }
-
-        .fault {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
+        .comp-title {
+            font-weight: 800; font-size: 0.85rem; margin-bottom: 0.6rem;
+            padding-bottom: 0.4rem; border-bottom: 1px dashed rgba(0,0,0,0.15);
         }
-
-        .optimal {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
+        .comp-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.78rem; padding: 3px 0; color: #334155;
         }
+        .comp-row strong { color: #0f172a; font-weight: 800; }
 
-        .warning-swap {
-            background: #ffedd5;
-            color: #92400e;
-            border: 1px solid #fed7aa;
-        }
-
-        .comparison-box {
-            background: #ffffff;
-            border-radius: var(--radius-md);
-            padding: 0.85rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.825rem;
-            padding: 0.35rem 0;
-            border-bottom: 1px dashed #f1f5f9;
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        /* Buttons */
-        .action-button {
-            border: none;
-            width: 100%;
-            padding: 0.85rem 1rem;
-            border-radius: 2rem;
-            font-weight: 800;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .action-button:active {
-            transform: scale(0.98);
-        }
-
-        .btn-polarity {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-voltage-swap {
-            background: linear-gradient(135deg, #d97706, #b45309);
-            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
-        }
-
-        .btn-next {
-            background: linear-gradient(135deg, #10b981, #059669);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-snapshot {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
-            margin-bottom: 1rem;
-        }
-
+        /* Recommendations */
+        .remedy-list { display: flex; flex-direction: column; gap: 0.6rem; }
         .action-step {
-            background: white;
-            border-radius: var(--radius-md);
-            padding: 0.75rem 0.85rem;
-            font-weight: 600;
-            font-size: 0.825rem;
-            border-right: 4px solid var(--error);
-            color: var(--text-main);
-            line-height: 1.5;
-            margin-top: 0.5rem;
-            box-shadow: var(--shadow-sm);
+            background: white; border-radius: 1rem; padding: 12px 14px;
+            font-weight: 600; font-size: 0.82rem; color: #0f172a;
+            line-height: 1.55; border-right: 5px solid var(--blue);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
-
-        /* Phasor Panel Design */
-        .phasor-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .action-step.red    { border-right-color: var(--red); }
+        .action-step.gold   { border-right-color: var(--gold); }
+        .action-step.green  { border-right-color: var(--green); }
+        .action-step.blue   { border-right-color: var(--blue); }
 
         canvas {
-            background: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
-            width: 100%;
-            max-width: 360px;
-            height: auto;
-            border: 1px solid var(--border-color);
+            background: #ffffff; border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            width: 100%; max-width: 380px; height: auto;
         }
-
         .legend {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.75rem;
-            margin: 1rem 0;
-            font-size: 0.75rem;
-            font-weight: 700;
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 0.8rem; margin-top: 1rem; font-size: 0.72rem; font-weight: 700;
         }
+        .legend span { display: inline-flex; align-items: center; gap: 4px; }
+        .legend .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .legend .dash { width: 14px; height: 2px; display: inline-block; }
 
-        .legend span {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            background: #f8fafc;
-            padding: 0.2rem 0.6rem;
-            border-radius: 1rem;
-            border: 1px solid #e2e8f0;
-        }
-
-        .two-columns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
-            margin-top: 0.5rem;
-        }
-
-        .snapshot-badge,
-        .corrected-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 1rem;
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: white;
-        }
-
-        .snapshot-badge {
-            background: #8b5cf6;
-        }
-
-        .corrected-badge {
-            background: #10b981;
-        }
-
-        .new-values-input {
-            background: #fef3c7;
-            padding: 0.85rem;
-            border-radius: var(--radius-md);
-            margin-top: 0.75rem;
-            border: 1px solid #fde68a;
-        }
-
-        .new-values-input input {
-            width: 70px;
-            padding: 0.35rem;
-            margin: 0.2rem;
-            text-align: center;
-            border-radius: 0.4rem;
-            border: 1px solid #cbd5e1;
-            font-weight: 700;
+        @media (max-width: 900px) {
+            .phasor-panel { position: static; }
         }
     </style>
 </head>
-
 <body>
-    <div class="app-viewport">
-        <!-- Header Bar -->
-        <header class="app-header">
-            <div class="app-header-title">
-                <div>
-                    <h1>⚡ تحليل الزوايا والفقد</h1>
-                    <span>Sequential Phase Analyzer</span>
-                </div>
+<div class="master-container">
+
+    <!-- ══════════ LEFT: ANALYTICS ══════════ -->
+    <div class="analytics-panel">
+        <div class="panel-header">
+            <h2>⚡ محلل الزوايا والأخطاء</h2>
+            <button class="btn-back" onclick="window.location.href='Control_Calc.html'">⬅️ الرئيسية</button>
+        </div>
+
+        <!-- Inputs: Voltages -->
+        <div class="section-title">📐 زوايا الجهد المرجعية (VR / VT / VS)</div>
+        <div class="angle-grid">
+            <div class="angle-card">
+                <span class="phase-label" style="color:#dc2626;">🔴 VR</span>
+                <input type="number" id="thetaVR" value="0" step="1">
             </div>
-            <button class="btn-nav-back" onclick="window.location.href = 'index.html'">
-                ⬅️ الصفحة الرئيسية
-            </button>
-        </header>
+            <div class="angle-card">
+                <span class="phase-label" style="color:#2563eb;">🔵 VT</span>
+                <input type="number" id="thetaVT" value="120" step="1">
+            </div>
+            <div class="angle-card">
+                <span class="phase-label" style="color:#d97706;">🟡 VS</span>
+                <input type="number" id="thetaVS" value="240" step="1">
+            </div>
+        </div>
 
-        <main class="app-content">
-            <!-- Analytics Control Panel -->
-            <section class="app-card">
-                <div class="section-header">📐 زوايا الجهد المرجعي (VR / VT / VS)</div>
-                <div class="angle-grid">
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#dc2626;">🔴 VR</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaVR" value="0" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#2563eb;">🔵 VT</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaVT" value="120" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#d97706;">🟡 VS</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaVS" value="240" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                </div>
+        <!-- Inputs: Currents -->
+        <div class="section-title">⚡ زوايا تأخر التيار عن الجهد (IR / IS / IT)</div>
+        <div class="angle-grid">
+            <div class="angle-card">
+                <span class="phase-label" style="color:#b91c1c;">🔴 IR</span>
+                <input type="number" id="thetaIR" value="45" step="1">
+            </div>
+            <div class="angle-card">
+                <span class="phase-label" style="color:#15803d;">🟢 IS</span>
+                <input type="number" id="thetaIS" value="15" step="1">
+            </div>
+            <div class="angle-card">
+                <span class="phase-label" style="color:#6b21a8;">🟣 IT</span>
+                <input type="number" id="thetaIT" value="30" step="1">
+            </div>
+        </div>
 
-                <div class="section-header">⚡ زاوية تأخر التيار عن الجهد (IR / IS / IT)</div>
-                <div class="angle-grid">
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#b91c1c;">🔴 IR (عن VR)</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaIR" value="45" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#15803d;">🟢 IS (عن VS)</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaIS" value="15" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                    <div class="angle-card">
-                        <span class="phase-label" style="color:#6b21a8;">🟣 IT (عن VT)</span>
-                        <div class="input-group">
-                            <input type="number" id="thetaIT" value="30" step="1" oninput="resetToFirstStep()">
-                        </div>
-                    </div>
-                </div>
+        <!-- Import kWh -->
+        <div class="kwh-row">
+            <label>📥 كمية الاستيراد (kWh):</label>
+            <input type="number" id="importKwh" value="1000" step="10">
+        </div>
 
-                <div class="import-group">
-                    <label for="importKwh">📥 كمية الاستيراد المرجعية (kWh)</label>
-                    <div class="input-group">
-                        <input type="number" id="importKwh" value="1000" step="10" oninput="updateCurrentError()">
-                    </div>
-                </div>
+        <!-- Comparison -->
+        <div class="section-title">📊 مقارنة الأخطاء</div>
+        <div class="comparison-grid">
+            <div class="comparison-card current">
+                <div class="comp-title">📸 القراءة الحالية (غير مصححة)</div>
+                <div class="comp-row"><span>PF:</span><strong id="curPF">--</strong></div>
+                <div class="comp-row"><span>الخطأ:</span><strong id="curErr">--</strong></div>
+                <div class="comp-row"><span>الفقد:</span><strong id="curLoss">--</strong></div>
+                <div class="comp-row"><span>الإجمالي:</span><strong id="curTrue">--</strong></div>
+            </div>
+            <div class="comparison-card corrected">
+                <div class="comp-title">✅ بعد التصحيح</div>
+                <div class="comp-row"><span>PF:</span><strong id="corPF">--</strong></div>
+                <div class="comp-row"><span>الخطأ:</span><strong id="corErr">--</strong></div>
+                <div class="comp-row"><span>الفقد:</span><strong id="corLoss">--</strong></div>
+                <div class="comp-row"><span>الإجمالي:</span><strong id="corTrue">--</strong></div>
+            </div>
+        </div>
 
-                <div class="result-module" id="currentErrorBox">
-                    <div class="status-chip optimal" id="currentStatus">📊 الوضع الحالي المقاس</div>
-                    <div class="comparison-box">
-                        <div class="result-item">
-                            <span>📐 متوسط PF المقاس:</span>
-                            <span id="current_pf" style="font-weight:800;">0.8660</span>
-                        </div>
-                        <div class="result-item">
-                            <span>⚠️ نسبة الخطأ:</span>
-                            <span id="current_error" style="font-weight:800;">0.00%</span>
-                        </div>
-                        <div class="result-item">
-                            <span>📤 الطاقة المفقودة (Export):</span>
-                            <span id="current_export" style="font-weight:800;">0.00 kWh</span>
-                        </div>
-                        <div class="result-item">
-                            <span>✅ الطاقة الإجمالية الصحيحة:</span>
-                            <span id="current_true" style="font-weight:800;">1000.00 kWh</span>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="snapshotBtn" class="action-button btn-snapshot">📸 حفظ حالة التوصيل الأولية</button>
-
-                <div id="resultContainer" class="result-module">
-                    <div id="dynamicStatus" class="status-chip optimal">✅ بدأ فحص اتجاه التيار</div>
-                    <div id="remediationSteps">
-                        <div class="action-step" style="border-right-color: var(--primary-light);">🔍 اضغط على زر "فحص اتجاه التيار" أولاً.</div>
-                    </div>
-                </div>
-
-                <button id="actionButton" class="action-button btn-polarity" onclick="handleClick()">🔍 فحص اتجاه التيار</button>
-            </section>
-
-            <!-- Phasor Diagram Panel -->
-            <section class="app-card phasor-container">
-                <div class="section-header" style="width:100%;">🌀 Live Phasor Diagram</div>
-                <canvas id="phasorCanvas" width="450" height="450"></canvas>
-                
-                <div class="legend">
-                    <span><strong style="color:#dc2626;">●</strong> VR</span>
-                    <span><strong style="color:#2563eb;">●</strong> VT</span>
-                    <span><strong style="color:#d97706;">●</strong> VS</span>
-                    <span><strong style="color:#b91c1c;">⤁</strong> IR</span>
-                    <span><strong style="color:#15803d;">⤁</strong> IS</span>
-                    <span><strong style="color:#6b21a8;">⤁</strong> IT</span>
-                </div>
-
-                <div class="comparison-box" style="width:100%;">
-                    <div style="font-weight:800; font-size:0.85rem; margin-bottom:0.5rem;">📊 مقارنة النتائج</div>
-                    <div class="two-columns">
-                        <div style="text-align: center; background: #f8fafc; padding: 0.6rem; border-radius: var(--radius-md);">
-                            <span class="snapshot-badge">📸 التوصيل الخطأ</span>
-                            <div id="snapshotContent" style="margin-top: 0.5rem; font-size: 0.75rem; font-weight:700;">
-                                <div>⚠️ الخطأ: --</div>
-                                <div>📤 الفقد: --</div>
-                                <div>✅ الإجمالي: --</div>
-                            </div>
-                        </div>
-                        <div style="text-align: center; background: #f8fafc; padding: 0.6rem; border-radius: var(--radius-md);">
-                            <span class="corrected-badge">✅ بعد التصحيح</span>
-                            <div id="correctedContent" style="margin-top: 0.5rem; font-size: 0.75rem; font-weight:700;">
-                                <div>⚠️ الخطأ: --</div>
-                                <div>📤 الفقد: --</div>
-                                <div>✅ الإجمالي: --</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
+        <!-- Recommendations -->
+        <div class="section-title">🛠️ التوصيات والإجراءات</div>
+        <div class="angles-summary" id="anglesSummary"></div>
+        <div class="remedy-list" id="recommendations"></div>
     </div>
 
-    <script>
-        const canvas = document.getElementById("phasorCanvas");
-        const ctx = canvas.getContext("2d");
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radiusVec = 165;
-
-        let currentStep = 1;
-        let swapHistory = [];
-        let snapshotData = null;
-
-        const REF_THETA = 30;
-
-        function calculateError(lagIR, lagIS, lagIT, importKwh) {
-            const pfCorrect = Math.cos(REF_THETA * Math.PI / 180);
-            const pfR = Math.cos(lagIR * Math.PI / 180);
-            const pfY = Math.cos(lagIS * Math.PI / 180);
-            const pfB = Math.cos(lagIT * Math.PI / 180);
-            const pfMeasuredAvg = (pfR + pfY + pfB) / 3;
-            const errorPercent = ((pfMeasuredAvg / pfCorrect) - 1) * 100;
-            const exportMissing = importKwh * (errorPercent / 100);
-            const trueEnergy = importKwh - exportMissing;
-            return { pfMeasuredAvg, errorPercent, exportMissing, trueEnergy };
-        }
-
-        function updateCurrentError() {
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-            const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-
-            const { pfMeasuredAvg, errorPercent, exportMissing, trueEnergy } = calculateError(lagIR, lagIS, lagIT, importKwh);
-
-            document.getElementById("current_pf").innerHTML = pfMeasuredAvg.toFixed(4);
-            document.getElementById("current_error").innerHTML = (errorPercent > 0 ? '+' : '') + errorPercent.toFixed(2) + '%';
-            document.getElementById("current_export").innerHTML = Math.abs(exportMissing).toFixed(2) + ' kWh';
-            document.getElementById("current_true").innerHTML = trueEnergy.toFixed(2) + ' kWh';
-
-            const errorSpan = document.getElementById("current_error");
-            const exportSpan = document.getElementById("current_export");
-            if (errorPercent > 0) {
-                errorSpan.style.color = '#f59e0b';
-                exportSpan.style.color = '#f59e0b';
-            } else if (errorPercent < 0) {
-                errorSpan.style.color = '#dc2626';
-                exportSpan.style.color = '#16a34a';
-            } else {
-                errorSpan.style.color = '#16a34a';
-                exportSpan.style.color = '#64748b';
-            }
-        }
-
-        function takeSnapshot() {
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-            const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-            const vR = document.getElementById("thetaVR").value;
-            const vT = document.getElementById("thetaVT").value;
-            const vS = document.getElementById("thetaVS").value;
-
-            const { errorPercent, exportMissing, trueEnergy } = calculateError(lagIR, lagIS, lagIT, importKwh);
-
-            snapshotData = { vR, vT, vS, lagIR, lagIS, lagIT, importKwh, errorPercent, exportMissing, trueEnergy };
-
-            document.getElementById("snapshotContent").innerHTML = `
-                <div>⚠️ الخطأ: ${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(2)}%</div>
-                <div>📤 الفقد: ${Math.abs(exportMissing).toFixed(2)} kWh</div>
-                <div>✅ الإجمالي: ${trueEnergy.toFixed(2)} kWh</div>
-                <div style="font-size:0.65rem; color:#666; margin-top:0.3rem;">IR=${lagIR}° | IS=${lagIS}° | IT=${lagIT}°</div>
-            `;
-
-            Swal.fire({
-                title: "✅ تم حفظ اللقطة",
-                text: `تم حفظ الحالة الأولية: خطأ ${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(2)}%`,
-                icon: "success",
-                timer: 1500,
-                showConfirmButton: false
-            });
-        }
-
-        function updateCorrectedDisplay(lagIR, lagIS, lagIT, importKwh) {
-            const { errorPercent, exportMissing, trueEnergy } = calculateError(lagIR, lagIS, lagIT, importKwh);
-            document.getElementById("correctedContent").innerHTML = `
-                <div>⚠️ الخطأ: ${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(2)}%</div>
-                <div>📤 الفقد: ${Math.abs(exportMissing).toFixed(2)} kWh</div>
-                <div>✅ الإجمالي: ${trueEnergy.toFixed(2)} kWh</div>
-                <div style="font-size:0.65rem; color:#666; margin-top:0.3rem;">IR=${lagIR}° | IS=${lagIS}° | IT=${lagIT}°</div>
-            `;
-        }
-
-        function drawVector(angleDeg, length, color, label, isDashed = false, lineWidth = 4) {
-            const rad = ((angleDeg - 90) * Math.PI) / 180;
-            const endX = centerX + length * Math.cos(rad);
-            const endY = centerY + length * Math.sin(rad);
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            if (isDashed) ctx.setLineDash([8, 5]);
-            else ctx.setLineDash([]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            const headLen = 11;
-            ctx.beginPath();
-            ctx.moveTo(endX, endY);
-            ctx.lineTo(endX - headLen * Math.cos(rad - Math.PI / 6), endY - headLen * Math.sin(rad - Math.PI / 6));
-            ctx.lineTo(endX - headLen * Math.cos(rad + Math.PI / 6), endY - headLen * Math.sin(rad + Math.PI / 6));
-            ctx.fillStyle = color;
-            ctx.fill();
-            ctx.font = "bold 11px Cairo";
-            ctx.fillStyle = "#0f172a";
-            ctx.fillText(label, endX + 12 * Math.cos(rad), endY + 6 * Math.sin(rad));
-        }
-
-        function updatePhasorCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radiusVec, 0, 2 * Math.PI);
-            ctx.strokeStyle = "#cbd5e1";
-            ctx.lineWidth = 1.2;
-            ctx.stroke();
-
-            for (let i = 0; i < 360; i += 30) {
-                const rad = i * Math.PI / 180;
-                const x1 = centerX + (radiusVec - 10) * Math.cos(rad);
-                const y1 = centerY + (radiusVec - 10) * Math.sin(rad);
-                const x2 = centerX + (radiusVec + 10) * Math.cos(rad);
-                const y2 = centerY + (radiusVec + 10) * Math.sin(rad);
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.strokeStyle = "#e2e8f0";
-                ctx.stroke();
-
-                ctx.font = "10px Cairo";
-                ctx.fillStyle = "#9ca3af";
-                let angleText = i + "°";
-                let textX, textY;
-
-                if (i === 0) { textX = centerX + radiusVec + 10; textY = centerY - 4; }
-                else if (i === 30) { textX = centerX + radiusVec * 0.9 + 8; textY = centerY - radiusVec * 0.5 - 5; }
-                else if (i === 60) { textX = centerX + radiusVec * 0.55 + 5; textY = centerY - radiusVec * 0.85 - 3; }
-                else if (i === 90) { textX = centerX + 3; textY = centerY - radiusVec - 8; }
-                else if (i === 120) { textX = centerX - radiusVec * 0.55 - 25; textY = centerY - radiusVec * 0.85 - 3; }
-                else if (i === 150) { textX = centerX - radiusVec * 0.9 - 25; textY = centerY - radiusVec * 0.5 - 5; }
-                else if (i === 180) { textX = centerX - radiusVec - 30; textY = centerY - 4; }
-                else if (i === 210) { textX = centerX - radiusVec * 0.9 - 25; textY = centerY + radiusVec * 0.5 + 5; }
-                else if (i === 240) { textX = centerX - radiusVec * 0.55 - 25; textY = centerY + radiusVec * 0.85 + 8; }
-                else if (i === 270) { textX = centerX + 3; textY = centerY + radiusVec + 18; }
-                else if (i === 300) { textX = centerX + radiusVec * 0.55 + 5; textY = centerY + radiusVec * 0.85 + 8; }
-                else if (i === 330) { textX = centerX + radiusVec * 0.9 + 8; textY = centerY + radiusVec * 0.5 + 5; }
-                else { continue; }
-
-                ctx.fillText(angleText, textX, textY);
-            }
-
-            const vR = (parseFloat(document.getElementById("thetaVR").value) || 0) % 360;
-            const vT = (parseFloat(document.getElementById("thetaVT").value) || 0) % 360;
-            const vS = (parseFloat(document.getElementById("thetaVS").value) || 0) % 360;
-
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-
-            const iRActual = (vR + lagIR) % 360;
-            const iSActual = (vS + lagIS) % 360;
-            const iTActual = (vT + lagIT) % 360;
-
-            drawVector(vR, radiusVec - 12, "#dc2626", `VR (${vR}°)`, false, 4);
-            drawVector(vT, radiusVec - 12, "#2563eb", `VT (${vT}°)`, false, 4);
-            drawVector(vS, radiusVec - 12, "#d97706", `VS (${vS}°)`, false, 4);
-            drawVector(iRActual, radiusVec - 42, "#b91c1c", `IR (${lagIR}°)`, true, 3);
-            drawVector(iSActual, radiusVec - 42, "#15803d", `IS (${lagIS}°)`, true, 3);
-            drawVector(iTActual, radiusVec - 42, "#6b21a8", `IT (${lagIT}°)`, true, 3);
-
-            ctx.fillStyle = "#334155";
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-            ctx.fill();
-
-            updateCurrentError();
-        }
-
-        function resetToFirstStep() {
-            currentStep = 1;
-            swapHistory = [];
-            updatePhasorCanvas();
-            const btn = document.getElementById("actionButton");
-            btn.className = "action-button btn-polarity";
-            btn.innerHTML = "🔍 فحص اتجاه التيار";
-            const statusDiv = document.getElementById("dynamicStatus");
-            statusDiv.className = "status-chip optimal";
-            statusDiv.innerHTML = "🔄 تم تعديل المدخلات. ابدأ بفحص الاتجاه.";
-            document.getElementById("remediationSteps").innerHTML = `<div class="action-step" style="border-right-color: var(--primary-light);">✏️ تم تحديث الزوايا، اضغط على زر فحص الاتجاه.</div>`;
-        }
-
-        function getAbsoluteAngles() {
-            const vR = (parseFloat(document.getElementById("thetaVR").value) || 0) % 360;
-            const vS = (parseFloat(document.getElementById("thetaVS").value) || 0) % 360;
-            const vT = (parseFloat(document.getElementById("thetaVT").value) || 0) % 360;
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-
-            return {
-                IR: ((vR + lagIR) % 360 + 360) % 360,
-                IS: ((vS + lagIS) % 360 + 360) % 360,
-                IT: ((vT + lagIT) % 360 + 360) % 360,
-                lagIR, lagIS, lagIT
-            };
-        }
-
-        function checkPolarity() {
-            const angles = getAbsoluteAngles();
-
-            function isReversed(angle) {
-                return (angle >= 60 && angle <= 120) || (angle >= 180 && angle <= 240) || (angle >= 300 && angle <= 360);
-            }
-
-            let faults = [];
-            let messages = [];
-
-            if (isReversed(angles.IR)) {
-                faults.push("IR");
-                messages.push(`<div class="action-step" style="border-right-color: var(--error);">❌ <b>خلل اتجاه في IR</b> (الزاوية المطلقة = ${angles.IR}°)<br>🛠️ الإجراء: اعكس أطراف سلك التيار IR في العداد.</div>`);
-            }
-            if (isReversed(angles.IS)) {
-                faults.push("IS");
-                messages.push(`<div class="action-step" style="border-right-color: var(--error);">❌ <b>خلل اتجاه في IS</b> (الزاوية المطلقة = ${angles.IS}°)<br>🛠️ الإجراء: اعكس أطراف سلك التيار IS في العداد.</div>`);
-            }
-            if (isReversed(angles.IT)) {
-                faults.push("IT");
-                messages.push(`<div class="action-step" style="border-right-color: var(--error);">❌ <b>خلل اتجاه في IT</b> (الزاوية المطلقة = ${angles.IT}°)<br>🛠️ الإجراء: اعكس أطراف سلك التيار IT في العداد.</div>`);
-            }
-
-            const statusDiv = document.getElementById("dynamicStatus");
-            const stepsDiv = document.getElementById("remediationSteps");
-            const btn = document.getElementById("actionButton");
-
-            if (faults.length > 0) {
-                statusDiv.className = "status-chip fault";
-                statusDiv.innerHTML = `⚠️ تم رصد اتجاه تيار معكوس في: ${faults.join(", ")}`;
-                stepsDiv.innerHTML = messages.join("");
-                currentStep = 1;
-            } else {
-                statusDiv.className = "status-chip optimal";
-                statusDiv.innerHTML = "✅ اتجاهات التيارات سليمة تماماً!";
-
-                const lagIR = angles.lagIR;
-                const lagIS = angles.lagIS;
-                const lagIT = angles.lagIT;
-                const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-                const { errorPercent, exportMissing } = calculateError(lagIR, lagIS, lagIT, importKwh);
-
-                stepsDiv.innerHTML = `
-                    <div class="action-step" style="border-right-color: var(--success);">
-                        ✔️ جميع اتجاهات التيارات صحيحة.<br>
-                        📊 زوايا التأخر: IR = ${lagIR}°, IS = ${lagIS}°, IT = ${lagIT}°
-                    </div>
-                    <div class="action-step" style="border-right-color: var(--warning);">
-                        📊 <strong>تقرير أخطاء الاستيراد والتصدير:</strong><br>
-                        • نسبة الخطأ: ${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(2)}%<br>
-                        • الطاقة المفقودة: ${Math.abs(exportMissing).toFixed(2)} kWh
-                    </div>
-                    <div class="action-step" style="border-right-color: var(--primary-light);">
-                        🔽 اضغط على الزر التالي لبدء فحص تبديل الجهد التدريجي لتصحيح الزوايا.
-                    </div>
-                `;
-                currentStep = 2;
-                btn.className = "action-button btn-voltage-swap";
-                btn.innerHTML = "🔄 فحص تبديل الجهود ";
-                swapHistory = [];
-            }
-        }
-
-        function findNextSwap(lagIR, lagIS, lagIT) {
-            const currents = [
-                { name: "IR", voltage: "VR", lag: lagIR },
-                { name: "IS", voltage: "VS", lag: lagIS },
-                { name: "IT", voltage: "VT", lag: lagIT }
-            ];
-
-            for (let i = 0; i < currents.length; i++) {
-                for (let j = i + 1; j < currents.length; j++) {
-                    const c1 = currents[i];
-                    const c2 = currents[j];
-                    if ((c1.lag >= 120 && c2.lag >= 240) || (c1.lag >= 240 && c2.lag >= 120)) {
-                        return { swap1: c1.voltage, swap2: c2.voltage, c1Name: c1.name, c2Name: c2.name, val1: c1.lag, val2: c2.lag };
-                    }
-                }
-            }
-
-            const allAbove120 = lagIR >= 120 && lagIS >= 120 && lagIT >= 120;
-            if (allAbove120) {
-                return { swap1: "VR", swap2: "VS", c1Name: "IR", c2Name: "IS", val1: lagIR, val2: lagIS, isThreePhase: true };
-            }
-
-            return null;
-        }
-
-        function checkVoltageSwap() {
-            const angles = getAbsoluteAngles();
-            let lagIR = angles.lagIR;
-            let lagIS = angles.lagIS;
-            let lagIT = angles.lagIT;
-
-            const nextSwap = findNextSwap(lagIR, lagIS, lagIT);
-
-            const statusDiv = document.getElementById("dynamicStatus");
-            const stepsDiv = document.getElementById("remediationSteps");
-            const btn = document.getElementById("actionButton");
-
-            if (!nextSwap) {
-                statusDiv.className = "status-chip optimal";
-                statusDiv.innerHTML = "✅ ✅ ✅ تم الانتهاء بنجاح! جميع الزوايا طبيعية.";
-
-                const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-                const { errorPercent, exportMissing, trueEnergy } = calculateError(lagIR, lagIS, lagIT, importKwh);
-
-                updateCorrectedDisplay(lagIR, lagIS, lagIT, importKwh);
-
-                let historyText = "";
-                if (swapHistory.length > 0) {
-                    historyText = `<div class="action-step" style="border-right-color: var(--success);">📋 <strong>ملخص التبديلات التي تمت:</strong><br>${swapHistory.map(s => `• ${s}`).join("<br>")}</div>`;
-                }
-
-                stepsDiv.innerHTML = `
-                    <div class="action-step" style="border-right-color: var(--success);">
-                        🎯 <strong>اكتمل التصحيح!</strong><br>
-                        📊 الزوايا النهائية: IR = ${lagIR}°, IS = ${lagIS}°, IT = ${lagIT}°
-                    </div>
-                    <div class="action-step" style="border-right-color: var(--warning);">
-                        📊 <strong>تقرير الأخطاء بعد التصحيح:</strong><br>
-                        • نسبة الخطأ: ${errorPercent > 0 ? '+' : ''}${errorPercent.toFixed(2)}%<br>
-                        • الطاقة المفقودة: ${Math.abs(exportMissing).toFixed(2)} kWh<br>
-                        • الطاقة الإجمالية: ${trueEnergy.toFixed(2)} kWh
-                    </div>
-                    ${historyText}
-                    <div class="action-step" style="border-right-color: var(--primary-light);">
-                        ✅ تم إصلاح العداد بنجاح.
-                    </div>
-                `;
-                currentStep = 1;
-                btn.className = "action-button btn-polarity";
-                btn.innerHTML = "🔍 فحص اتجاه التيار ";
-                return;
-            }
-
-            let swapMessage = "";
-            if (nextSwap.isThreePhase) {
-                swapMessage = `
-                    <div class="action-step" style="border-right-color: var(--warning);">
-                        📊 جميع زوايا التأخر ≥ 120°: IR = ${lagIR}°, IS = ${lagIS}°, IT = ${lagIT}°<br>
-                        🛠️ <b>الإجراء الميداني (الخطوة ${swapHistory.length + 1}):</b><br>
-                        &nbsp;&nbsp;• قم بتبديل فازتي الجهد <b>${nextSwap.swap1} و ${nextSwap.swap2}</b> في العداد.<br>
-                        <br>
-                        📌 <strong>بعد تنفيذ التبديل، قم بإدخال زوايا التيار الجديدة ثم اضغط الزر.</strong>
-                    </div>
-                    <div class="new-values-input">
-                        <div style="font-weight:800; margin-bottom:8px; font-size:0.85rem;">📝 إدخال القيم الجديدة بعد التبديل:</div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-                            <label style="font-size:0.8rem; font-weight:700;">IR: <input type="number" id="newIR" placeholder="IR" value="${lagIR}" step="1"></label>
-                            <label style="font-size:0.8rem; font-weight:700;">IS: <input type="number" id="newIS" placeholder="IS" value="${lagIS}" step="1"></label>
-                            <label style="font-size:0.8rem; font-weight:700;">IT: <input type="number" id="newIT" placeholder="IT" value="${lagIT}" step="1"></label>
-                        </div>
-                    </div>
-                `;
-            } else {
-                swapMessage = `
-                    <div class="action-step" style="border-right-color: var(--warning);">
-                        🔄 <strong>تبديل جهد مكتشف (الخطوة ${swapHistory.length + 1})</strong><br>
-                        📊 ${nextSwap.c1Name} = ${nextSwap.val1}° ${nextSwap.val1 >= 240 ? "(≥240°)" : "(≥120°)"}<br>
-                        📊 ${nextSwap.c2Name} = ${nextSwap.val2}° ${nextSwap.val2 >= 240 ? "(≥240°)" : "(≥120°)"}<br>
-                        🛠️ <b>الإجراء الميداني:</b> قم بتبديل فازتي الجهد <b>${nextSwap.swap1} و ${nextSwap.swap2}</b> في العداد.<br>
-                        <br>
-                        📌 <strong>بعد تنفيذ التبديل، قم بإدخال زوايا التيار الجديدة ثم اضغط الزر.</strong>
-                    </div>
-                    <div class="new-values-input">
-                        <div style="font-weight:800; margin-bottom:8px; font-size:0.85rem;">📝 إدخال القيم الجديدة بعد التبديل:</div>
-                        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
-                            <label style="font-size:0.8rem; font-weight:700;">IR: <input type="number" id="newIR" placeholder="IR" value="${lagIR}" step="1"></label>
-                            <label style="font-size:0.8rem; font-weight:700;">IS: <input type="number" id="newIS" placeholder="IS" value="${lagIS}" step="1"></label>
-                            <label style="font-size:0.8rem; font-weight:700;">IT: <input type="number" id="newIT" placeholder="IT" value="${lagIT}" step="1"></label>
-                        </div>
-                    </div>
-                `;
-            }
-
-            statusDiv.className = "status-chip warning-swap";
-            statusDiv.innerHTML = `⚠️ الخطوة ${swapHistory.length + 1}: مطلوب تبديل ${nextSwap.swap1} ↔ ${nextSwap.swap2}`;
-            stepsDiv.innerHTML = swapMessage;
-
-            btn.className = "action-button btn-next";
-            btn.innerHTML = "✅ تأكيد التبديل وتحديث القياسات ";
-
-            window.pendingSwap = nextSwap;
-        }
-
-        function confirmSwapAndContinue() {
-            if (!window.pendingSwap) {
-                checkVoltageSwap();
-                return;
-            }
-
-            const newIR = parseFloat(document.getElementById("newIR")?.value);
-            const newIS = parseFloat(document.getElementById("newIS")?.value);
-            const newIT = parseFloat(document.getElementById("newIT")?.value);
-
-            if (!isNaN(newIR)) document.getElementById("thetaIR").value = newIR;
-            if (!isNaN(newIS)) document.getElementById("thetaIS").value = newIS;
-            if (!isNaN(newIT)) document.getElementById("thetaIT").value = newIT;
-
-            swapHistory.push(`تم تبديل ${window.pendingSwap.swap1} مع ${window.pendingSwap.swap2}`);
-
-            const vR = document.getElementById("thetaVR");
-            const vS = document.getElementById("thetaVS");
-            const vT = document.getElementById("thetaVT");
-
-            const swap1 = window.pendingSwap.swap1;
-            const swap2 = window.pendingSwap.swap2;
-
-            let val1, val2;
-            if (swap1 === "VR") val1 = parseFloat(vR.value) || 0;
-            else if (swap1 === "VS") val1 = parseFloat(vS.value) || 0;
-            else val1 = parseFloat(vT.value) || 0;
-
-            if (swap2 === "VR") val2 = parseFloat(vR.value) || 0;
-            else if (swap2 === "VS") val2 = parseFloat(vS.value) || 0;
-            else val2 = parseFloat(vT.value) || 0;
-
-            if (swap1 === "VR" && swap2 === "VS") { vR.value = val2; vS.value = val1; }
-            else if (swap1 === "VR" && swap2 === "VT") { vR.value = val2; vT.value = val1; }
-            else if (swap1 === "VS" && swap2 === "VT") { vS.value = val2; vT.value = val1; }
-            else if (swap1 === "VS" && swap2 === "VR") { vS.value = val2; vR.value = val1; }
-            else if (swap1 === "VT" && swap2 === "VR") { vT.value = val2; vR.value = val1; }
-            else if (swap1 === "VT" && swap2 === "VS") { vT.value = val2; vS.value = val1; }
-
-            updatePhasorCanvas();
-            window.pendingSwap = null;
-
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-            const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-            updateCorrectedDisplay(lagIR, lagIS, lagIT, importKwh);
-
-            checkVoltageSwap();
-        }
-
-        function handleClick() {
-            if (currentStep === 1) {
-                checkPolarity();
-            } else if (currentStep === 2) {
-                if (window.pendingSwap) {
-                    confirmSwapAndContinue();
-                } else {
-                    checkVoltageSwap();
-                }
-            }
-        }
-
-        document.getElementById("snapshotBtn").addEventListener("click", takeSnapshot);
-
-        window.onload = () => {
-            updatePhasorCanvas();
-            const allInputs = ['thetaVR', 'thetaVS', 'thetaVT', 'thetaIR', 'thetaIS', 'thetaIT'];
-            allInputs.forEach(id => {
-                document.getElementById(id).addEventListener('input', () => {
-                    updatePhasorCanvas();
-                    if (currentStep !== 2 || !window.pendingSwap) {
-                        resetToFirstStep();
-                    }
-                });
-            });
-            const lagIR = (parseFloat(document.getElementById("thetaIR").value) || 0) % 360;
-            const lagIS = (parseFloat(document.getElementById("thetaIS").value) || 0) % 360;
-            const lagIT = (parseFloat(document.getElementById("thetaIT").value) || 0) % 360;
-            const importKwh = parseFloat(document.getElementById("importKwh").value) || 0;
-            updateCorrectedDisplay(lagIR, lagIS, lagIT, importKwh);
-        };
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- ══════════ RIGHT: PHASOR ══════════ -->
+    <div class="phasor-panel">
+        <div class="panel-header" style="width:100%;">
+            <h2>🌀 Phasor Diagram</h2>
+        </div>
+        <canvas id="phasorCanvas" width="450" height="450"
+                style="width:100%; max-width:400px; height:auto; background:#fff; border-radius:50%;"></canvas>
+        <div class="legend">
+            <span><span class="dot" style="background:#dc2626;"></span>VR</span>
+            <span><span class="dot" style="background:#2563eb;"></span>VT</span>
+            <span><span class="dot" style="background:#d97706;"></span>VS</span>
+            <span><span class="dash" style="background:#b91c1c;"></span>IR</span>
+            <span><span class="dash" style="background:#15803d;"></span>IS</span>
+            <span><span class="dash" style="background:#6b21a8;"></span>IT</span>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CORE LOGIC
+   ══════════════════════════════════════════════════════════════ */
+
+const REF_PF = Math.cos(30 * Math.PI / 180); // 0.8660
+
+function normalize(deg) {
+    return ((deg % 360) + 360) % 360;
+}
+
+function isSuspicious(lag) {
+    const l = normalize(lag);
+    return (l >= 60 && l <= 120) || (l >= 240 && l <= 300);
+}
+
+function isPolarityReversed(abs) {
+    const a = normalize(abs);
+    return (a >= 60 && a <= 120) || (a >= 180 && a <= 240) || (a >= 300 && a <= 360);
+}
+
+function calcPF(lags) {
+    return lags.reduce((s, l) => s + Math.cos(l * Math.PI / 180), 0) / lags.length;
+}
+
+function analyze() {
+    const vR  = parseFloat(document.getElementById('thetaVR').value)  || 0;
+    const vT  = parseFloat(document.getElementById('thetaVT').value)  || 0;
+    const vS  = parseFloat(document.getElementById('thetaVS').value)  || 0;
+    const lIR = parseFloat(document.getElementById('thetaIR').value)  || 0;
+    const lIS = parseFloat(document.getElementById('thetaIS').value)  || 0;
+    const lIT = parseFloat(document.getElementById('thetaIT').value)  || 0;
+    const importKwh = parseFloat(document.getElementById('importKwh').value) || 0;
+
+    const absIR = normalize(vR + lIR);
+    const absIS = normalize(vS + lIS);
+    const absIT = normalize(vT + lIT);
+
+    const revIR = isPolarityReversed(absIR);
+    const revIS = isPolarityReversed(absIS);
+    const revIT = isPolarityReversed(absIT);
+    const reversedList = [];
+    if (revIR) reversedList.push('IR');
+    if (revIS) reversedList.push('IS');
+    if (revIT) reversedList.push('IT');
+
+    const susIR = isSuspicious(lIR);
+    const susIS = isSuspicious(lIS);
+    const susIT = isSuspicious(lIT);
+    const suspiciousList = [];
+    if (susIR) suspiciousList.push('IR');
+    if (susIS) suspiciousList.push('IS');
+    if (susIT) suspiciousList.push('IT');
+
+    let cIR = lIR, cIS = lIS, cIT = lIT;
+    let swapCorrected = false;
+    const correctedPhases = [];
+    if (suspiciousList.length >= 2) {
+        swapCorrected = true;
+        let n = 0;
+        if (susIR && n < 2) { cIR = lIR - 120; n++; correctedPhases.push('IR'); }
+        if (susIS && n < 2) { cIS = lIS - 120; n++; correctedPhases.push('IS'); }
+        if (susIT && n < 2) { cIT = lIT - 120; n++; correctedPhases.push('IT'); }
+    }
+
+    const pfCur = calcPF([lIR, lIS, lIT]);
+    const pfCor = calcPF([cIR, cIS, cIT]);
+    const errCur = (pfCur / REF_PF - 1) * 100;
+    const errCor = (pfCor / REF_PF - 1) * 100;
+
+    const lossCur = importKwh * (errCur / 100);
+    const lossCor = importKwh * (errCor / 100);
+    const trueCur = importKwh - lossCur;
+    const trueCor = importKwh - lossCor;
+
+    return {
+        vR, vT, vS, lIR, lIS, lIT, importKwh,
+        absIR, absIS, absIT,
+        revIR, revIS, revIT, reversedList,
+        susIR, susIS, susIT, suspiciousList,
+        cIR, cIS, cIT, swapCorrected, correctedPhases,
+        pfCur, pfCor, errCur, errCor,
+        lossCur, lossCor, trueCur, trueCor
+    };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PHASOR DRAWING
+   ══════════════════════════════════════════════════════════════ */
+
+const canvas = document.getElementById('phasorCanvas');
+const ctx = canvas.getContext('2d');
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const radiusVec = 165;
+
+function drawVector(angleDeg, length, color, label, opts = {}) {
+    const rad = ((angleDeg - 90) * Math.PI) / 180;
+    const endX = centerX + length * Math.cos(rad);
+    const endY = centerY + length * Math.sin(rad);
+
+    ctx.globalAlpha = opts.alpha || 1;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = opts.lineWidth || 4;
+    if (opts.dashed) ctx.setLineDash([8, 5]);
+    else if (opts.dotted) ctx.setLineDash([3, 4]);
+    else ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const hLen = 11, hAng = Math.PI / 6;
+    ctx.beginPath();
+    ctx.moveTo(endX, endY);
+    ctx.lineTo(endX - hLen * Math.cos(rad - hAng), endY - hLen * Math.sin(rad - hAng));
+    ctx.lineTo(endX - hLen * Math.cos(rad + hAng), endY - hLen * Math.sin(rad + hAng));
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    if (label) {
+        ctx.font = 'bold 11px Cairo';
+        ctx.fillStyle = opts.labelColor || '#0f172a';
+        const lx = endX + 12 * Math.cos(rad);
+        const ly = endY + 12 * Math.sin(rad);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, lx, ly);
+        ctx.textAlign = 'start';
+        ctx.textBaseline = 'alphabetic';
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawPhasor(r) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radiusVec, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.font = '9px Cairo';
+    ctx.fillStyle = '#9ca3af';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < 360; i += 30) {
+        const rad = ((i - 90) * Math.PI) / 180;
+        const x1 = centerX + (radiusVec - 8) * Math.cos(rad);
+        const y1 = centerY + (radiusVec - 8) * Math.sin(rad);
+        const x2 = centerX + (radiusVec + 8) * Math.cos(rad);
+        const y2 = centerY + (radiusVec + 8) * Math.sin(rad);
+        ctx.beginPath();
+        ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+        ctx.strokeStyle = '#e2e8f0'; ctx.stroke();
+
+        const tx = centerX + (radiusVec + 22) * Math.cos(rad);
+        const ty = centerY + (radiusVec + 22) * Math.sin(rad);
+        ctx.fillText(i + '°', tx, ty);
+    }
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+
+    if (r.swapCorrected) {
+        drawVector(normalize(r.vR + r.cIR), radiusVec - 42, '#b91c1c', '', { lineWidth: 2, dotted: true, alpha: 0.35 });
+        drawVector(normalize(r.vS + r.cIS), radiusVec - 42, '#15803d', '', { lineWidth: 2, dotted: true, alpha: 0.35 });
+        drawVector(normalize(r.vT + r.cIT), radiusVec - 42, '#6b21a8', '', { lineWidth: 2, dotted: true, alpha: 0.35 });
+    }
+
+    drawVector(r.vR, radiusVec - 12, '#dc2626', 'VR', { lineWidth: 4 });
+    drawVector(r.vT, radiusVec - 12, '#2563eb', 'VT', { lineWidth: 4 });
+    drawVector(r.vS, radiusVec - 12, '#d97706', 'VS', { lineWidth: 4 });
+
+    drawVector(r.absIR, radiusVec - 42, '#b91c1c', 'IR', { lineWidth: 3, dashed: true });
+    drawVector(r.absIS, radiusVec - 42, '#15803d', 'IS', { lineWidth: 3, dashed: true });
+    drawVector(r.absIT, radiusVec - 42, '#6b21a8', 'IT', { lineWidth: 3, dashed: true });
+
+    ctx.fillStyle = '#334155';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+    ctx.fill();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════════ */
+
+function colorError(id, err) {
+    const el = document.getElementById(id);
+    if (err > 0.5)        el.style.color = '#d97706';
+    else if (err < -0.5)  el.style.color = '#dc2626';
+    else                  el.style.color = '#16a34a';
+}
+
+function render() {
+    const r = analyze();
+
+    /* ---- Comparison cards ---- */
+    document.getElementById('curPF').textContent   = r.pfCur.toFixed(4);
+    document.getElementById('curErr').textContent  = (r.errCur > 0 ? '+' : '') + r.errCur.toFixed(2) + '%';
+    document.getElementById('curLoss').textContent = Math.abs(r.lossCur).toFixed(2) + ' kWh';
+    document.getElementById('curTrue').textContent = r.trueCur.toFixed(2) + ' kWh';
+
+    document.getElementById('corPF').textContent   = r.pfCor.toFixed(4);
+    document.getElementById('corErr').textContent  = (r.errCor > 0 ? '+' : '') + r.errCor.toFixed(2) + '%';
+    document.getElementById('corLoss').textContent = Math.abs(r.lossCor).toFixed(2) + ' kWh';
+    document.getElementById('corTrue').textContent = r.trueCor.toFixed(2) + ' kWh';
+
+    colorError('curErr', r.errCur);
+    colorError('corErr', r.errCor);
+
+    /* ---- Angle summary ---- */
+    const summary = document.getElementById('anglesSummary');
+    let sHtml = `<div class="detail-row"><span>الزوايا المطلقة:</span>
+                    <strong>IR = ${r.absIR.toFixed(1)}° | IS = ${r.absIS.toFixed(1)}° | IT = ${r.absIT.toFixed(1)}°</strong>
+                 </div>`;
+    if (r.swapCorrected) {
+        sHtml += `<div class="detail-row"><span>الزوايا المصححة (−120°):</span>
+                     <strong>IR = ${r.cIR}° | IS = ${r.cIS}° | IT = ${r.cIT}°</strong>
+                  </div>`;
+    }
+    summary.innerHTML = sHtml;
+
+    /* ---- Recommendations ---- */
+    const recs = document.getElementById('recommendations');
+    let rHtml = '';
+
+    if (r.reversedList.length > 0) {
+        rHtml += `<div class="action-step red">🛠️ قم بعكس أطراف سلك التيار للفازات: <b>${r.reversedList.join(', ')}</b> في العداد.</div>`;
+    }
+    if (r.swapCorrected) {
+        const pair = r.correctedPhases.slice(0, 2).join(' و ');
+        rHtml += `<div class="action-step gold">🔄 تم اكتشاف تبديل جهد بين فازتين. بدّل أطراف الجهد للفازتين <b>${pair}</b> في العداد.</div>`;
+    }
+    if (r.reversedList.length === 0 && !r.swapCorrected && Math.abs(r.errCur) < 0.5) {
+        rHtml += `<div class="action-step green">✅ التوصيلات سليمة والخطأ ضمن الحدود المقبولة. لا توجد إجراءات مطلوبة.</div>`;
+    }
+    if (!r.swapCorrected && Math.abs(r.errCor) > 0.5 && r.reversedList.length === 0) {
+        rHtml += `<div class="action-step blue">ℹ️ الخطأ (${r.errCor.toFixed(2)}%) ناتج عن زوايا تأخر غير معتادة. راجع الأحمال أو معايرة العداد.</div>`;
+    }
+    recs.innerHTML = rHtml;
+
+    /* ---- Phasor ---- */
+    drawPhasor(r);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════ */
+
+window.addEventListener('load', () => {
+    ['thetaVR', 'thetaVT', 'thetaVS', 'thetaIR', 'thetaIS', 'thetaIT', 'importKwh']
+        .forEach(id => document.getElementById(id).addEventListener('input', render));
+    render();
+});
+</script>
 </body>
-
 </html>
