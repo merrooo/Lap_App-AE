@@ -2,720 +2,495 @@
 <html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-    <title>قياس الأحمال الكهربائية - نظام إدارة ومراقبة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>قياس الأحمال الكهربائية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* ===== Modern Mobile-App Layout & Index Matching Theme ===== */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: "Cairo", sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #004a99;
-            --primary-dark: #003366;
-            --accent: #0099ff;
-            --danger: #e74c3c;
-            --success: #27ae60;
-            --bg-page: #f7f8f9;
+            --primary: #0b2b40;
+            --primary-dark: #06212e;
+            --primary-light: #1e4a6b;
+            --accent: #2c9cd4;
+            --danger: #e1573c;
+            --success: #2e8b57;
             --card-bg: #ffffff;
             --border-light: #e2e8f0;
-            --text-dark: #2c3e50;
-            --text-muted: #7f8c8d;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 10px 40px rgba(0, 0, 0, 0.1);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
+            --text-dark: #1a2c3e;
+            --shadow-sm: 0 8px 20px rgba(0,0,0,0.05);
+            --shadow-md: 0 12px 28px rgba(0,0,0,0.08);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --sidebar-width: 320px;
         }
-
         body {
-            background: var(--bg-page);
-            padding: 15px;
+            font-family: "Cairo", sans-serif;
+            background: linear-gradient(145deg, #e9f0f5 0%, #dfe8ef 100%);
+            padding: 8px;
             color: var(--text-dark);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
         }
-
-        .container {
-            max-width: 1100px;
-            width: 100%;
+        .app {
+            max-width: 100%;
+            margin: 0 auto;
             background: var(--card-bg);
             border-radius: var(--radius-lg);
-            padding: 25px;
             box-shadow: var(--shadow-md);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            overflow: hidden;
         }
-
-        /* ===== Header Section ===== */
-        .app-header {
+        .logo-section {
+            background: var(--primary);
+            padding: 8px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 2px solid var(--border-light);
-            padding-bottom: 15px;
-        }
-
-        .header-title h1 {
-            color: var(--primary);
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-        }
-
-        .header-title .subtitle {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-right: 4px solid var(--primary);
-            padding-right: 10px;
-            margin-top: 4px;
-        }
-
-        .header-actions {
-            display: flex;
             gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
+            border-bottom: 3px solid var(--accent);
         }
-
-        /* ===== Common App Buttons ===== */
-        .btn {
-            border: none;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
+        .logo-section h2 {
+            color: white;
+            font-weight: 800;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .logo-section h2 i { color: var(--accent); font-size: 1.1rem; }
+        .header-actions { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+        button {
+            font-family: "Cairo", sans-serif;
             font-weight: 600;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-size: 0.65rem;
             cursor: pointer;
-            font-size: 0.85rem;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            height: 38px;
-            white-space: nowrap;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-excel {
-            background: #217346;
-            color: white;
-        }
-
-        .btn-excel:hover {
-            background: #1a5c38;
-        }
-
-        .btn-standard {
-            background: #6c5ce7;
-            color: white;
-        }
-
-        .btn-standard:hover {
-            background: #5a4bd1;
-        }
-
-        .btn-save {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-save:hover {
-            background: #219a52;
-        }
-
-        .btn-home {
-            background: var(--text-muted);
-            color: white;
-        }
-
-        .btn-home:hover {
-            background: #636e72;
-        }
-
-        .btn-add {
-            background: var(--accent);
-            color: white;
-        }
-
-        .btn-add:hover {
-            background: #0077cc;
-        }
-
-        /* ===== Main Layout Wrapper ===== */
-        .main-layout {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-        }
-
-        /* ===== Left Sidebar (Database Records) ===== */
-        .sidebar {
-            width: 280px;
-            flex-shrink: 0;
-            background: #f8fafc;
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-md);
-            display: flex;
-            flex-direction: column;
-            max-height: 750px;
-            overflow: hidden;
-        }
-
-        .sidebar-header {
-            padding: 12px 15px;
-            background: var(--primary);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-header h3 {
-            font-size: 0.9rem;
-            font-weight: 700;
-        }
-
-        .btn-icon {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            transition: 0.2s;
-        }
-
-        .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
-        .sidebar-search {
-            padding: 10px;
-            background: white;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .sidebar-search input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            font-size: 0.8rem;
-            outline: none;
-        }
-
-        .sidebar-search input:focus {
-            border-color: var(--accent);
-        }
-
-        .records-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .record-card {
-            background: white;
-            border-radius: var(--radius-sm);
-            padding: 10px;
-            border: 1px solid var(--border-light);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .record-card:hover {
-            border-color: var(--accent);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .record-card.active {
-            border-color: var(--accent);
-            background: #f0f8ff;
-            border-right: 4px solid var(--accent);
-        }
-
-        .record-card .badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: var(--primary);
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-
-        .record-card .title {
-            font-weight: 700;
-            font-size: 0.8rem;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-            padding-left: 50px;
-        }
-
-        .record-card .meta {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .record-card .actions {
-            display: flex;
             gap: 4px;
-            margin-top: 6px;
-        }
-
-        .record-card .actions button {
-            padding: 3px 8px;
-            font-size: 0.65rem;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            color: white;
-        }
-
-        .btn-view-rec {
-            background: #f39c12;
-        }
-
-        .btn-del-rec {
-            background: var(--danger);
-        }
-
-        /* ===== Right Content (Forms & Table) ===== */
-        .content-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            min-width: 0;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: var(--radius-md);
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .input-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        input[type="text"],
-        input[type="number"],
-        select {
-            padding: 8px 12px;
-            border: 2px solid var(--border-light);
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
             background: white;
-            transition: 0.3s;
-            width: 100%;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.1);
-        }
-
-        .section-bar {
-            background: var(--primary);
-            color: white;
-            padding: 8px 15px;
-            border-radius: var(--radius-sm);
-            font-size: 0.85rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .load-input-panel {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: var(--radius-md);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .load-fields-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .load-fields-row .field-sm {
-            width: 90px;
-        }
-
-        .load-fields-row .field-flex {
-            flex: 1;
-            min-width: 140px;
-        }
-
-        /* Image Preview Area */
-        .edit-image-preview {
-            display: none;
-            padding: 10px;
-            background: white;
-            border-radius: var(--radius-sm);
-            border: 1px dashed var(--border-light);
-            align-items: center;
-            gap: 10px;
-        }
-
-        .edit-image-preview.show {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .image-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .photo-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .photo-wrapper img {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid var(--border-light);
-            cursor: pointer;
-        }
-
-        .photo-wrapper .remove-btn {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            font-size: 10px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* ===== Table Styling ===== */
-        .table-wrapper {
-            overflow-x: auto;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-light);
-        }
-
-        .loads-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 700px;
-            text-align: center;
-        }
-
-        .loads-table th {
-            background: var(--primary);
-            color: white;
-            padding: 10px 12px;
-            font-weight: 600;
-        }
-
-        .loads-table td {
-            border: 1px solid var(--border-light);
-            padding: 8px;
-        }
-
-        .loads-table tr:hover td {
-            background-color: #f1f8ff;
-        }
-
-        .loads-table tfoot tr {
-            background: #eef6ff;
-            font-weight: 700;
-        }
-
-        .loads-table tfoot td {
-            border-top: 3px solid var(--primary);
             color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
-        .btn-tbl {
-            padding: 4px 8px;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            color: white;
-            margin: 0 2px;
+        .btn-upload-excel {
+            background: #217346; color: white; padding: 4px 12px;
+            border-radius: 25px; font-size: 0.65rem; font-weight: 700;
+            white-space: nowrap; border: none; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
         }
-
-        .btn-tbl-edit {
-            background: #f39c12;
+        .btn-upload-excel:hover { background: #1a5c38; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(33,115,70,0.3); }
+        .btn-load-standard {
+            background: #6c5ce7; color: white; padding: 4px 12px;
+            border-radius: 25px; font-size: 0.65rem; font-weight: 700;
+            white-space: nowrap; border: none; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
         }
-
-        .btn-tbl-del {
-            background: var(--danger);
+        .btn-load-standard:hover { background: #5a4bd1; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(108,92,231,0.3); }
+        .btn-save { background: var(--success); color: white; }
+        .btn-save:hover { background: #3eac72; transform: translateY(-2px); }
+        .btn-home { background: #4a5568; color: white; }
+        .btn-home:hover { background: #2d3748; transform: translateY(-2px); }
+        .btn-add-small { background: var(--accent); color: white; padding: 4px 10px; font-size: 0.65rem; white-space: nowrap; }
+        .btn-add-small:hover { background: #1f86b8; }
+        .btn-refresh { background: var(--accent); color: white; padding: 4px 8px; font-size: 0.6rem; }
+        .btn-refresh:hover { background: #1f86b8; transform: rotate(180deg); }
+        .btn-filter { background: var(--primary-light); color: white; padding: 4px 8px; font-size: 0.6rem; }
+        .btn-filter:hover { background: var(--primary); }
+        .visually-hidden { display: none; }
+        .btn-cancel-edit { background: #888; display: none; }
+        .main-container { display: flex; gap: 0; min-height: 600px; width: 100%; }
+        .left-sidebar {
+            width: var(--sidebar-width); min-width: var(--sidebar-width);
+            background: #f8fafc; border-left: 1px solid var(--border-light);
+            display: flex; flex-direction: column;
+            height: calc(100vh - 110px); position: sticky; top: 0; overflow: hidden;
         }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: #f8fafc;
-            border-top: 1px solid var(--border-light);
+        .sidebar-header {
+            padding: 8px 12px; background: var(--primary-dark); color: white;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
         }
-
-        .pagination button {
-            padding: 4px 10px;
-            font-size: 0.8rem;
-            border-radius: 4px;
-            border: 1px solid var(--border-light);
-            background: white;
-            cursor: pointer;
+        .sidebar-header h3 { font-size: 0.8rem; font-weight: 700; margin: 0; }
+        .sidebar-header h3 i { color: var(--accent); margin-left: 6px; }
+        .search-filter {
+            padding: 4px 10px; display: flex; gap: 4px;
+            background: white; border-bottom: 1px solid var(--border-light); flex-shrink: 0;
         }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .sidebar-search {
+            flex: 1; padding: 4px 10px; border: 1px solid var(--border-light);
+            border-radius: 20px; font-size: 0.65rem; outline: none;
+            font-family: "Cairo", sans-serif; min-width: 0;
         }
-
-        /* ===== Mobile Responsiveness ===== */
-        @media (max-width: 850px) {
-            .main-layout {
-                flex-direction: column;
+        .sidebar-search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,156,212,0.2); }
+        .records-list { flex: 1; overflow-y: auto; padding: 4px; background: #f8fafc; min-height: 200px; }
+        .records-list::-webkit-scrollbar { width: 4px; }
+        .records-list::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        .loading-records { text-align: center; padding: 30px 15px; color: #888; font-size: 0.8rem; }
+        .record-item {
+            background: white; border-radius: 10px; padding: 6px 8px; margin-bottom: 4px;
+            border: 1px solid var(--border-light); cursor: pointer;
+            transition: all 0.2s ease; position: relative;
+        }
+        .record-item:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); transform: translateX(-2px); }
+        .record-item.active { border-color: var(--accent); background: #f0f8ff; border-right: 3px solid var(--accent); }
+        .record-item .record-name { font-weight: 700; font-size: 0.75rem; color: var(--text-dark); padding-left: 45px; }
+        .record-item .record-meta {
+            font-size: 0.55rem; color: #888; display: flex; gap: 6px;
+            flex-wrap: wrap; margin-top: 2px;
+        }
+        .record-item .record-meta span { display: inline-flex; align-items: center; gap: 3px; }
+        .record-item .record-actions { display: flex; gap: 3px; margin-top: 3px; flex-wrap: wrap; }
+        .record-item .record-actions button { padding: 2px 6px; font-size: 0.5rem; border-radius: 10px; }
+        .record-item .record-badge {
+            position: absolute; top: 4px; left: 6px; background: var(--accent);
+            color: white; font-size: 0.45rem; padding: 1px 5px; border-radius: 8px; font-weight: 600;
+        }
+        .btn-view-record { background: #f4b942; color: white; }
+        .btn-view-record:hover { background: #d49a2e; }
+        .btn-delete-record { background: var(--danger); color: white; }
+        .btn-delete-record:hover { background: #c0392b; }
+        .right-content { flex: 1; padding: 8px; min-width: 0; overflow: hidden; width: 100%; display: flex; flex-direction: column; }
+        .main-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 4px; }
+        .main-form-grid input { font-size: 0.7rem; padding: 4px 8px; }
+        .notes-row { width: 100%; margin-bottom: 6px; }
+        .notes-input {
+            width: 100% !important; padding: 4px 10px;
+            border: 1px solid var(--border-light); border-radius: 25px;
+            font-family: "Cairo", sans-serif; font-size: 0.7rem;
+            background: #fefefe; outline: none;
+        }
+        .notes-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,156,212,0.2); }
+        .section-title {
+            background: linear-gradient(95deg, var(--primary-light), var(--primary));
+            color: white; padding: 2px 10px; border-radius: 40px;
+            font-weight: 700; margin: 4px 0 4px 0; font-size: 0.7rem;
+            display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .section-title .editing-mode-indicator {
+            background: #f4b942; color: white; padding: 0 10px; border-radius: 20px;
+            font-size: 0.6rem; font-weight: 700; display: none; align-items: center; gap: 4px;
+        }
+        .section-title .editing-mode-indicator.show { display: inline-flex; }
+        .section-title .phase-change-indicator {
+            background: #e1573c; color: white; padding: 0 10px; border-radius: 20px;
+            font-size: 0.55rem; font-weight: 700; display: none; align-items: center; gap: 4px;
+        }
+        .section-title .phase-change-indicator.show { display: inline-flex; }
+        .add-load-row {
+            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+            margin: 3px 0 6px; background: #f8fafc; padding: 6px 8px; border-radius: 30px;
+        }
+        .add-load-row select { width: 120px; flex-shrink: 0; padding: 4px 6px; font-size: 0.65rem; border-radius: 20px; }
+        .small-input {
+            width: 85px !important; flex-shrink: 0; padding: 4px 6px;
+            font-size: 0.7rem; text-align: center; border-radius: 20px;
+        }
+        .small-input.readonly { background: #eef2f5; color: #555; }
+        .wide-input { flex: 1; min-width: 120px; padding: 4px 10px; font-size: 0.7rem; border-radius: 20px; }
+        .btn-add-small { flex-shrink: 0; white-space: nowrap; padding: 4px 10px; font-size: 0.65rem; }
+        .edit-image-preview {
+            display: none; margin: 3px 0 6px; padding: 4px 10px;
+            background: #f8fafc; border-radius: 20px; flex-wrap: wrap; align-items: center; gap: 4px;
+        }
+        .edit-image-preview.show { display: flex; }
+        .edit-image-preview .label { font-size: 0.65rem; color: #666; }
+        .edit-image-preview .image-container { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+        .edit-image-preview .image-container img {
+            width: 35px; height: 35px; object-fit: cover;
+            border-radius: 4px; cursor: pointer; border: 1px solid #ddd;
+        }
+        .edit-image-preview .image-container .photo-wrapper { position: relative; display: inline-block; }
+        .edit-image-preview .image-container .remove-photo-btn {
+            position: absolute; top: -4px; right: -4px; background: #e1573c;
+            color: white; border: none; border-radius: 50%;
+            width: 14px; height: 14px; font-size: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .edit-image-preview .add-photo-btn {
+            background: #2c9cd4; color: white; border: none;
+            padding: 2px 8px; border-radius: 12px; cursor: pointer; font-size: 8px;
+        }
+        input, select {
+            width: 100%; padding: 4px 8px; border: 1px solid var(--border-light);
+            border-radius: 25px; font-family: "Cairo", sans-serif;
+            font-size: 0.7rem; background: #fefefe; outline: none;
+        }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(44,156,212,0.2); }
+        .table-wrapper {
+            overflow: hidden; border-radius: var(--radius-md); margin-top: 3px;
+            width: 100%; flex: 1; min-height: 180px; display: flex;
+            flex-direction: column; border: 1px solid var(--border-light);
+        }
+        .table-scroll { flex: 1; overflow-y: auto; max-height: calc(100vh - 480px); min-height: 150px; }
+        .table-scroll::-webkit-scrollbar { width: 4px; }
+        .table-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        table { width: 100%; min-width: 700px; border-collapse: collapse; background: white; }
+        th {
+            background: var(--primary-dark); color: white; padding: 6px 4px;
+            font-weight: 700; font-size: 0.62rem; white-space: nowrap;
+            position: sticky; top: 0; z-index: 10;
+        }
+        td {
+            padding: 4px 3px; text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            background-color: #fff; font-size: 0.65rem;
+        }
+        tr:hover td { background-color: #f1f9ff; }
+        tfoot td {
+            background-color: #eef2f5; font-weight: bold; font-size: 0.68rem;
+            position: sticky; bottom: 0; z-index: 10;
+        }
+        .pagination-container {
+            display: flex; justify-content: center; align-items: center; gap: 4px;
+            padding: 4px 0; background: #f8fafc; border-top: 1px solid var(--border-light);
+            flex-shrink: 0; flex-wrap: wrap;
+        }
+        .pagination-container button {
+            padding: 2px 8px; font-size: 0.6rem; border-radius: 15px;
+            min-width: 26px; justify-content: center;
+        }
+        .pagination-container button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-container .page-info { font-size: 0.65rem; color: #666; padding: 0 6px; }
+        .photo-preview { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; }
+        .photo-thumb {
+            width: 24px; height: 24px; object-fit: cover; border-radius: 4px;
+            cursor: pointer; border: 1px solid #ddd; transition: transform 0.2s;
+        }
+        .photo-thumb:hover { transform: scale(1.1); border-color: var(--accent); }
+        .swal2-popup { font-family: "Cairo", sans-serif; direction: rtl; z-index: 2000 !important; }
+        .no-records { text-align: center; padding: 30px 15px; color: #aaa; }
+        .no-records i { font-size: 1.5rem; display: block; margin-bottom: 8px; color: #ddd; }
+        .no-records p { font-size: 0.75rem; }
+        .btn-edit-row {
+            background: #f4b942; color: white; border: none; padding: 2px 6px;
+            border-radius: 12px; margin: 0 1px; cursor: pointer; font-size: 9px;
+        }
+        .btn-edit-row:hover { background: #d49a2e; }
+        .btn-delete-row {
+            background: #e1573c; color: white; border: none; padding: 2px 6px;
+            border-radius: 12px; margin: 0 1px; cursor: pointer; font-size: 9px;
+        }
+        .btn-delete-row:hover { background: #c0392b; }
+        .standard-load-item {
+            display: flex; align-items: center; gap: 8px; padding: 6px 8px;
+            border-bottom: 1px solid #f0f0f0; transition: background 0.2s; cursor: pointer;
+        }
+        .standard-load-item:hover { background: #f8f9ff; }
+        .standard-load-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+        .standard-load-item .load-info { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        .standard-load-item .load-name { font-weight: 600; font-size: 0.75rem; min-width: 120px; }
+        .standard-load-item .load-details { font-size: 0.65rem; color: #666; display: flex; gap: 6px; flex-wrap: wrap; }
+        .standard-load-item .load-details span { background: #f0f0f0; padding: 0 8px; border-radius: 10px; }
+        .standard-load-item .load-source { font-size: 0.6rem; color: #6c5ce7; background: #f0edff; padding: 0 8px; border-radius: 10px; }
+        .loads-list-container { max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; margin-top: 8px; }
+        .loads-list-container::-webkit-scrollbar { width: 4px; }
+        .loads-list-container::-webkit-scrollbar-thumb { background: #6c5ce7; border-radius: 10px; }
+        .loads-actions {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;
+        }
+        .loads-actions button { padding: 6px 20px; border-radius: 25px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; }
+        .loads-actions .btn-select-all { background: #6c5ce7; color: white; }
+        .loads-actions .btn-select-all:hover { background: #5a4bd1; }
+        .loads-actions .btn-add-selected { background: #2e8b57; color: white; }
+        .loads-actions .btn-add-selected:hover { background: #3eac72; }
+        .loads-actions .btn-close { background: #888; color: white; }
+        .loads-actions .btn-close:hover { background: #666; }
+        .loads-actions .btn-show-duplicates { background: #e1573c; color: white; }
+        .loads-actions .btn-show-duplicates:hover { background: #c0392b; }
+        .loads-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+        .loads-header .loads-count { font-size: 0.7rem; color: #888; }
+        .loads-header .loads-search {
+            flex: 1; min-width: 150px; padding: 4px 12px; border: 1px solid #ddd;
+            border-radius: 20px; font-family: "Cairo", sans-serif; font-size: 0.65rem; outline: none;
+        }
+        .loads-header .loads-search:focus { border-color: #6c5ce7; box-shadow: 0 0 0 2px rgba(108,92,231,0.15); }
+        .dup-checkbox-item {
+            display: flex; align-items: center; gap: 8px; padding: 4px 8px;
+            border-bottom: 1px solid #f0f0f0; background: #fff5f5; transition: background 0.2s;
+        }
+        .dup-checkbox-item:hover { background: #ffebeb; }
+        .dup-checkbox-item input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+        .dup-checkbox-item .dup-info { flex: 1; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+        .dup-checkbox-item .dup-name { font-weight: 600; font-size: 0.7rem; min-width: 100px; }
+        .dup-checkbox-item .dup-details { font-size: 0.6rem; color: #666; display: flex; gap: 4px; flex-wrap: wrap; }
+        .dup-checkbox-item .dup-details span { background: #f0f0f0; padding: 0 6px; border-radius: 8px; }
+        .dup-checkbox-item .dup-source { font-size: 0.55rem; color: #6c5ce7; background: #f0edff; padding: 0 6px; border-radius: 8px; }
+        .dup-group-header {
+            background: #e1573c; color: white; padding: 4px 10px; border-radius: 6px;
+            margin: 6px 0 3px 0; font-weight: 700; font-size: 0.7rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .dup-group-header .dup-count { background: white; color: #e1573c; padding: 0 8px; border-radius: 12px; font-size: 0.6rem; }
+        .dup-actions {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;
+        }
+        .dup-actions button { padding: 6px 20px; border-radius: 25px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; }
+        .dup-actions .btn-dup-select-all { background: #6c5ce7; color: white; }
+        .dup-actions .btn-dup-deselect-all { background: #888; color: white; }
+        .dup-actions .btn-dup-remove { background: #e1573c; color: white; }
+        .dup-actions .btn-dup-close { background: #666; color: white; }
+        .excel-note {
+            font-size: 0.6rem; color: #888; padding: 2px 8px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        @media (max-width:1024px) {
+            :root { --sidebar-width: 260px; }
+            .add-load-row select { width: 100px; }
+            .small-input { width: 70px !important; }
+        }
+        @media (max-width:768px) {
+            .main-container { flex-direction: column; }
+            .left-sidebar {
+                width: 100%; min-width: 100%; height: 220px;
+                position: relative; border-left: none; border-bottom: 1px solid var(--border-light);
             }
-
-            .sidebar {
-                width: 100%;
-                max-height: 220px;
-            }
-
-            .container {
-                padding: 15px;
-            }
-
-            .load-fields-row .field-sm,
-            .load-fields-row .field-flex {
-                width: 100%;
-            }
-
-            .header-actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .header-actions .btn {
-                flex: 1;
-                justify-content: center;
-            }
+            .main-form-grid { grid-template-columns: 1fr 1fr; }
+            .add-load-row select { width: 100px; }
+            .small-input { width: 65px !important; }
+            .wide-input { min-width: 100px; }
+        }
+        @media (max-width:500px) {
+            .main-form-grid { grid-template-columns: 1fr 1fr; }
+            .logo-section { flex-direction: column; text-align: center; padding: 6px 10px; }
+            .logo-section h2 { font-size: 0.85rem; }
+            .header-actions { width: 100%; justify-content: center; }
+            .header-actions button { font-size: 0.55rem; padding: 3px 8px; }
+            .add-load-row { flex-direction: column; align-items: stretch; border-radius: 16px; padding: 8px; }
+            .add-load-row select, .small-input, .wide-input, .btn-add-small { width: 100% !important; }
+            .right-content { padding: 4px; }
+            th, td { font-size: 0.55rem; padding: 2px 2px; }
+            .photo-thumb { width: 20px; height: 20px; }
+            .section-title { font-size: 0.65rem; padding: 2px 8px; }
+            .edit-image-preview .image-container img { width: 28px; height: 28px; }
+            .pagination-container button { font-size: 0.55rem; padding: 2px 6px; min-width: 24px; }
+            .pagination-container .page-info { font-size: 0.6rem; }
+        }
+        @media (max-width:480px) {
+            body { padding: 4px; }
+            .left-sidebar { height: 180px; }
+            .record-item .record-name { font-size: 0.65rem; padding-left: 35px; }
+            .record-item .record-badge { font-size: 0.4rem; padding: 0 4px; }
+            .record-item .record-meta { font-size: 0.5rem; }
+            .pagination-container { padding: 2px 0; gap: 3px; }
+            .pagination-container button { font-size: 0.5rem; padding: 1px 5px; min-width: 20px; }
+            .edit-image-preview .image-container img { width: 24px; height: 24px; }
+            .standard-load-item { flex-wrap: wrap; gap: 4px; }
+            .standard-load-item .load-info { flex-direction: column; align-items: flex-start; }
+            .standard-load-item .load-name { min-width: auto; }
+            .loads-header { flex-direction: column; align-items: stretch; }
+            .loads-actions { flex-direction: column; align-items: stretch; }
+            .loads-actions button { width: 100%; justify-content: center; }
+            .dup-actions { flex-direction: column; align-items: stretch; }
+            .dup-actions button { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="container">
-        <!-- Application Header -->
-        <div class="app-header">
-            <div class="header-title">
-                <h1><i class="fas fa-bolt"></i> قياس الأحمال الكهربائية</h1>
-                <div class="subtitle">نظام إدارة ومراقبة الأحمال العامة للمشتركين</div>
-            </div>
+    <div class="app">
+        <div class="logo-section">
+            <h2><i class="fas fa-bolt"></i>قياس الأحمال</h2>
             <div class="header-actions">
-                <button class="btn btn-excel" id="btnUploadExcel"><i class="fas fa-file-excel"></i> رفع Excel</button>
-                <button class="btn btn-standard" id="btnLoadStandard"><i class="fas fa-clipboard-list"></i> إضافة أحمال</button>
-                <button class="btn btn-save" id="btnSave"><i class="fas fa-save"></i> حفظ البيانات</button>
-                <button class="btn btn-home" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> الصفحة الرئيسية</button>
+                <button class="btn-upload-excel" id="btnUploadExcel"><i class="fas fa-file-excel"></i> رفع Excel</button>
+                <button class="btn-load-standard" id="btnLoadStandard"><i class="fas fa-clipboard-list"></i> اضافة احمال</button>
+                <button class="btn-save" id="btnSave"><i class="fas fa-save"></i> حفظ</button>
+                <button class="btn-home" title="الصفحة الرئيسية" aria-label="الصفحة الرئيسية" onclick="window.location.href='index.html'"><i class="fas fa-home"></i></button>
             </div>
         </div>
-
-        <div class="main-layout">
-            <!-- Left Sidebar (Database Explorer) -->
-            <div class="sidebar">
+        <div class="main-container">
+            <div class="left-sidebar">
                 <div class="sidebar-header">
                     <h3><i class="fas fa-database"></i> قاعدة البيانات</h3>
-                    <button class="btn-icon" id="refreshBtn" title="تحديث"><i class="fas fa-sync-alt"></i></button>
+                    <button class="btn-refresh" id="refreshBtn" title="تحديث البيانات" aria-label="تحديث البيانات"><i class="fas fa-sync-alt"></i></button>
                 </div>
-                <div class="sidebar-search">
-                    <input type="text" id="sidebarSearch" placeholder="بحث باسم المشترك أو العداد...">
+                <div class="search-filter">
+                    <input type="text" id="sidebarSearch" placeholder="بحث..." class="sidebar-search">
+                    <button class="btn-filter" id="filterBtn" title="تصفية البيانات" aria-label="تصفية البيانات"><i class="fas fa-filter"></i></button>
                 </div>
                 <div class="records-list" id="recordsList">
-                    <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px;">جاري التحميل...</div>
+                    <div class="loading-records">جاري التحميل...</div>
                 </div>
             </div>
-
-            <!-- Right Content Area -->
-            <div class="content-area">
-                <!-- Subscriber Information Grid -->
-                <div class="form-grid">
-                    <div class="input-group">
-                        <label>اسم المشترك</label>
-                        <input type="text" id="mname" placeholder="أدخل اسم المشترك">
-                    </div>
-                    <div class="input-group">
-                        <label>رقم العداد</label>
-                        <input type="text" id="mno" placeholder="أدخل رقم العداد">
-                    </div>
-                    <div class="input-group">
-                        <label>كود المشترك</label>
-                        <input type="text" id="mco" placeholder="أدخل الكود">
-                    </div>
-                    <div class="input-group" style="grid-column: 1 / -1;">
-                        <label>ملاحظات</label>
-                        <input type="text" id="notes" placeholder="ملاحظات إضافية...">
-                    </div>
-                    <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;">
+            <div class="right-content">
+                <div class="main-form-grid">
+                    <input type="text" id="mname" placeholder="اسم المشترك" autocomplete="on">
+                    <input type="text" id="mno" placeholder="رقم العداد" autocomplete="on">
+                    <input type="text" id="mco" placeholder="كود المشترك" autocomplete="on">
+                    <input type="file" id="excelFileInput" class="visually-hidden" accept=".xlsx,.xls">
                 </div>
-
-                <!-- Load Entry Section Header -->
-                <div class="section-bar">
-                    <span><i class="fas fa-microchip"></i> إضافة أحمـــال جديدة</span>
-                    <span id="editingIndicator" style="display:none; color: #f1c40f;"><i class="fas fa-edit"></i> وضع التعديل</span>
+                <div class="notes-row">
+                    <input type="text" id="notes" placeholder="ملاحظات" autocomplete="on" class="notes-input">
                 </div>
-
-                <!-- Load Inputs Form Panel -->
-                <div class="load-input-panel">
-                    <div class="load-fields-row">
-                        <div class="input-group field-sm">
-                            <label>الفاز</label>
-                            <select id="phase_mode">
-                                <option value="1">1 فاز</option>
-                                <option value="3" selected>3 فاز</option>
-                            </select>
-                        </div>
-                        <div class="input-group field-sm">
-                            <label>العدد</label>
-                            <input type="number" id="count" value="1" min="1">
-                        </div>
-                        <div class="input-group field-sm">
-                            <label>P.F</label>
-                            <input type="number" id="newItemPF" value="0.92" step="0.01">
-                        </div>
-                        <div class="input-group field-sm">
-                            <label>أمبير</label>
-                            <input type="number" id="newItemA" placeholder="A">
-                        </div>
-                        <div class="input-group field-sm">
-                            <label>وات</label>
-                            <input type="number" id="newItemW" placeholder="W">
-                        </div>
-                        <div class="input-group field-sm">
-                            <label>حصان</label>
-                            <input type="number" id="newItemHP" placeholder="HP">
-                        </div>
-                        <div class="input-group field-flex">
-                            <label>وصف الحمل</label>
-                            <input type="text" id="newItemName" placeholder="مثال: مكيف هواي 1.5 حصان">
-                        </div>
-                        <button class="btn btn-add" id="btnAddLoad"><i class="fas fa-plus"></i> <span id="addBtnText">إضافة</span></button>
-                        <button class="btn" id="btnCancelEdit" style="background:#888; color:white; display:none;">إلغاء</button>
-                    </div>
-
-                    <!-- Photo Management for selected Load -->
-                    <div class="edit-image-preview" id="editImagePreview">
-                        <span style="font-size:0.8rem; font-weight:600;"><i class="fas fa-camera"></i> صور الحمل:</span>
-                        <div class="image-container" id="editImageContainer"></div>
-                    </div>
+                <div class="section-title">
+                    <span><i class="fas fa-microchip"></i> إضافة أحمـــال</span>
+                    <span class="editing-mode-indicator" id="editingIndicator"><i class="fas fa-edit"></i> تعديل</span>
+                    <span class="phase-change-indicator" id="phaseChangeIndicator">⚡ تغيير الفاز</span>
                 </div>
-
-                <!-- Table Section Bar -->
-                <div class="section-bar">
-                    <span><i class="fas fa-list"></i> قائمة الأحمال المضافة</span>
+                <!-- Add form matches Excel columns: الحمل | العدد | وات  (+ phase/PF/amp for 3-phase calc) -->
+                <div class="add-load-row">
+                    <select id="phase_mode" title="عدد الفازات (لحساب الأمبير)" aria-label="عدد الفازات">
+                        <option value="3">3 فاز</option>
+                        <option value="1">1 فاز</option>
+                    </select>
+                    <input type="number" id="count" placeholder="العدد" value="1" min="1" class="small-input">
+                    <input type="number" id="newItemW" placeholder="وات" class="small-input">
+                    <input type="number" id="newItemPF" placeholder="P.F" value="0.92" step="0.01" class="small-input">
+                    <input type="number" id="newItemA" placeholder="أمبير (تلقائي)" class="small-input readonly" readonly tabindex="-1">
+                    <input type="text" id="newItemName" placeholder="وصف الحمل" class="wide-input" autocomplete="on">
+                    <button class="btn-add-small" id="btnAddLoad"><i class="fas fa-plus-circle"></i> <span id="addBtnText">إضافة</span></button>
+                    <button class="btn-add-small btn-cancel-edit" id="btnCancelEdit"><i class="fas fa-times"></i> إلغاء</button>
                 </div>
-
-                <!-- Data Table -->
+                <div class="edit-image-preview" id="editImagePreview">
+                    <span class="label"><i class="fas fa-image"></i> الصور:</span>
+                    <div class="image-container" id="editImageContainer"></div>
+                </div>
+                <div class="section-title"><i class="fas fa-list"></i> قائمة الأحمال</div>
                 <div class="table-wrapper">
-                    <table class="loads-table">
-                        <thead>
-                            <tr>
-                                <th>وصف الحمل</th>
-                                <th>العدد</th>
-                                <th>وات</th>
-                                <th>حصان</th>
-                                <th>أمبير</th>
-                                <th>ك.وات</th>
-                                <th>حصان كلي</th>
-                                <th>الصور</th>
-                                <th>إجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody"></tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="4" style="text-align: right; padding-right:15px;">الإجمالي الكلي:</td>
-                                <td id="totalAmps">0.00</td>
-                                <td id="totalKW">0.00</td>
-                                <td id="totalHP">0.00</td>
-                                <td colspan="2"></td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                    <div class="pagination">
-                        <button id="prevPage" disabled><i class="fas fa-chevron-right"></i> السابق</button>
-                        <span id="pageInfo" style="font-size:0.8rem; color:var(--text-muted);">الصفحة 1 من 1</span>
-                        <button id="nextPage" disabled>التالي <i class="fas fa-chevron-left"></i></button>
+                    <div class="table-scroll" id="tableScroll">
+                        <table id="mainTable">
+                            <thead>
+                                <tr>
+                                    <!-- Exactly the Excel columns: A | B | C | D | E -->
+                                    <th style="text-align:right; padding-right:8px;">الحمل</th>
+                                    <th style="width:55px;">العدد</th>
+                                    <th style="width:70px;">وات</th>
+                                    <th style="width:90px;">اجمالي كيلو وات</th>
+                                    <th style="width:90px;">اجمالي حصان</th>
+                                    <th style="width:60px;">صورة</th>
+                                    <th style="width:70px;">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                            <tfoot id="tableFooter">
+                                <tr>
+                                    <td colspan="2" style="text-align:right; padding-right:8px;">الإجمالي</td>
+                                    <td id="totalWatts">0</td>
+                                    <td id="totalKW">0.00</td>
+                                    <td id="totalHP">0.00</td>
+                                    <td colspan="2" style="font-size:0.55rem; color:#888;">
+                                        <span id="totalAmps">0.00</span> A
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="pagination-container" id="paginationContainer">
+                        <button id="prevPage" title="الصفحة السابقة" aria-label="الصفحة السابقة" disabled><i class="fas fa-chevron-right"></i></button>
+                        <span class="page-info" id="pageInfo">الصفحة 1 من 1</span>
+                        <button id="nextPage" title="الصفحة التالية" aria-label="الصفحة التالية" disabled><i class="fas fa-chevron-left"></i></button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-    <!-- Firebase Imports Map -->
     <script type="importmap">
         {
             "imports": {
@@ -725,8 +500,10 @@
         }
     </script>
 
-    <!-- Main Logic Script -->
     <script type="module">
+        /* ============================================================
+           Firebase
+           ============================================================ */
         import { initializeApp } from "firebase/app";
         import { getDatabase, ref, get, set, remove } from "firebase/database";
 
@@ -736,13 +513,36 @@
             projectId: "production1-ae85",
             storageBucket: "production1-ae85.firebasestorage.app",
             messagingSenderId: "490438031865",
-            appId: "1:490438031865:web:a4a69335989f30cd13a528"
+            appId: "1:490438031865:web:a4a69335989f30cd13a528",
+            measurementId: "G-W3TZ1EKWWN"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // App States
+        /* ============================================================
+           CONSTANTS — exactly match the uploaded Excel sheet
+           ------------------------------------------------------------
+           Excel columns:
+             A: الحمل
+             B: العدد
+             C: وات                (per-unit watts)
+             D: اجمالي كيلو وات     = (B * C) / 1000
+             E: اجمالي حصان         = D / 0.746
+
+           Amps (for 3-phase) is calculated in the background but
+           is NOT a column in the Excel sheet.
+           ============================================================ */
+        const V_1PH = 220;
+        const V_3PH = 380;
+        const SQRT3 = Math.sqrt(3);
+        const DEFAULT_PF = 0.92;
+        const HP_DIVISOR = 0.746;          // ← exactly as in Excel: E = D / 0.746
+        const PAGE_SIZE = 10;
+        const NODE = "Munipilation";       // Firebase path (unchanged)
+
+        /* ============================================================
+           State
+           ============================================================ */
         let isLoading = false;
         let currentMeterNo = null;
         let editingRow = null;
@@ -751,379 +551,1021 @@
         let loadPhotos = {};
         let allLoadsData = [];
         let currentPage = 1;
-        const itemsPerPage = 8;
 
-        // DOM Elements
-        const mnameInput = document.getElementById("mname");
-        const mnoInput = document.getElementById("mno");
-        const mcoInput = document.getElementById("mco");
-        const notesInput = document.getElementById("notes");
-        const tableBody = document.getElementById("tableBody");
-        const totalKWSpan = document.getElementById("totalKW");
-        const totalHPSpan = document.getElementById("totalHP");
-        const totalAmpsSpan = document.getElementById("totalAmps");
-        const phaseMode = document.getElementById("phase_mode");
-        const countInput = document.getElementById("count");
-        const pfInput = document.getElementById("newItemPF");
-        const ampInput = document.getElementById("newItemA");
-        const wattInput = document.getElementById("newItemW");
-        const hpInput = document.getElementById("newItemHP");
-        const loadNameInput = document.getElementById("newItemName");
-        const btnSave = document.getElementById("btnSave");
-        const btnAddLoad = document.getElementById("btnAddLoad");
-        const btnCancelEdit = document.getElementById("btnCancelEdit");
-        const addBtnText = document.getElementById("addBtnText");
-        const editingIndicator = document.getElementById("editingIndicator");
-        const editImagePreview = document.getElementById("editImagePreview");
-        const editImageContainer = document.getElementById("editImageContainer");
-        const recordsList = document.getElementById("recordsList");
-        const sidebarSearch = document.getElementById("sidebarSearch");
-        const refreshBtn = document.getElementById("refreshBtn");
-        const btnUploadExcel = document.getElementById("btnUploadExcel");
-        const btnLoadStandard = document.getElementById("btnLoadStandard");
-        const excelFileInput = document.getElementById("excelFileInput");
-        const prevPageBtn = document.getElementById("prevPage");
-        const nextPageBtn = document.getElementById("nextPage");
-        const pageInfo = document.getElementById("pageInfo");
+        /* ============================================================
+           DOM
+           ============================================================ */
+        const $ = id => document.getElementById(id);
+        const mnameInput = $("mname");
+        const mnoInput = $("mno");
+        const mcoInput = $("mco");
+        const notesInput = $("notes");
+        const tableBody = $("tableBody");
+        const totalWattsSpan = $("totalWatts");
+        const totalKWSpan = $("totalKW");
+        const totalHPSpan = $("totalHP");
+        const totalAmpsSpan = $("totalAmps");
+        const phaseMode = $("phase_mode");
+        const countInput = $("count");
+        const pfInput = $("newItemPF");
+        const ampInput = $("newItemA");
+        const wattInput = $("newItemW");
+        const loadNameInput = $("newItemName");
+        const btnSave = $("btnSave");
+        const btnAddLoad = $("btnAddLoad");
+        const btnCancelEdit = $("btnCancelEdit");
+        const addBtnText = $("addBtnText");
+        const editingIndicator = $("editingIndicator");
+        const phaseChangeIndicator = $("phaseChangeIndicator");
+        const editImagePreview = $("editImagePreview");
+        const editImageContainer = $("editImageContainer");
+        const recordsList = $("recordsList");
+        const sidebarSearch = $("sidebarSearch");
+        const refreshBtn = $("refreshBtn");
+        const filterBtn = $("filterBtn");
+        const btnUploadExcel = $("btnUploadExcel");
+        const btnLoadStandard = $("btnLoadStandard");
+        const excelFileInput = $("excelFileInput");
+        const prevPageBtn = $("prevPage");
+        const nextPageBtn = $("nextPage");
+        const pageInfo = $("pageInfo");
 
-        function escapeHtml(str) {
-            if (!str) return "";
-            return str.replace(/[&<>'"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[m]);
-        }
+        /* ============================================================
+           Utilities
+           ============================================================ */
+        const escapeHtml = str => {
+            if (str === undefined || str === null) return "";
+            return String(str).replace(/[&<>"']/g, m => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            }[m]));
+        };
+        const fmt = (n, d = 2) => isFinite(n) ? Number(n).toFixed(d) : (0).toFixed(d);
+        const num = (v, def = 0) => { const n = parseFloat(v); return isFinite(n) ? n : def; };
 
-        function showLoading(msg = "جاري المعالجة...") {
+        function showLoading(message = "جاري المعالجة...") {
             if (isLoading) return;
             isLoading = true;
-            Swal.fire({
-                title: msg,
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-                showConfirmButton: false
-            });
+            [btnSave, btnAddLoad, btnUploadExcel, btnLoadStandard].forEach(b => { if (b) { b.disabled = true; b.style.opacity = "0.6"; } });
+            [mnameInput, mnoInput, mcoInput, notesInput, phaseMode, countInput, pfInput, wattInput, loadNameInput].forEach(i => { if (i) { i.disabled = true; i.style.opacity = "0.6"; } });
+            Swal.fire({ title: message, allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false, backdrop: true });
         }
-
         function hideLoading() {
             if (!isLoading) return;
             isLoading = false;
+            [btnSave, btnAddLoad, btnUploadExcel, btnLoadStandard].forEach(b => { if (b) { b.disabled = false; b.style.opacity = "1"; } });
+            [mnameInput, mnoInput, mcoInput, notesInput, phaseMode, countInput, pfInput, wattInput, loadNameInput].forEach(i => { if (i) { i.disabled = false; i.style.opacity = "1"; } });
             Swal.close();
         }
 
-        // Calculation Helpers
-        function calculateFromAmps(amps, pf = 0.92, mode = "3") {
-            const V = mode === "3" ? 380 : 220;
-            const factor = mode === "3" ? Math.sqrt(3) : 1;
-            const watts = factor * V * amps * pf;
-            return { watts, hp: watts / 746, amps };
-        }
+        /* ============================================================
+           CORE — build a load row using the EXACT Excel formulas
+           ------------------------------------------------------------
+             totalKW = (count * watts) / 1000      ← Excel col D
+             totalHP = totalKW / 0.746             ← Excel col E
+             amps    = watts / (√3 * 380 * PF)     ← for 3-phase
+             amps    = watts / (220 * PF)          ← for 1-phase
+           ============================================================ */
+        function buildLoad(name, count, watts, pf = DEFAULT_PF, mode = "3") {
+            const c = Math.max(1, parseInt(count) || 1);
+            const w = Math.max(0, num(watts));
+            const pfN = num(pf, DEFAULT_PF) || DEFAULT_PF;
+            const v = mode === "1" ? V_1PH : V_3PH;
+            const f = mode === "1" ? 1 : SQRT3;
 
-        function calculateFromWatts(watts, pf = 0.92, mode = "3") {
-            const V = mode === "3" ? 380 : 220;
-            const factor = mode === "3" ? Math.sqrt(3) : 1;
-            return { watts, amps: watts / (factor * V * pf), hp: watts / 746 };
-        }
+            const perUnitAmps = w > 0 ? w / (f * v * pfN) : 0;
+            const totalKW = (c * w) / 1000;          // ← Excel: (B*C)/1000
+            const totalHP = totalKW / HP_DIVISOR;    // ← Excel: D/0.746
+            const totalAmps = perUnitAmps * c;
 
-        function calculateFromHP(hp, pf = 0.92, mode = "3") {
-            const watts = hp * 746;
-            const V = mode === "3" ? 380 : 220;
-            const factor = mode === "3" ? Math.sqrt(3) : 1;
-            return { watts, amps: watts / (factor * V * pf), hp };
-        }
-
-        function calculateRowTotals(count, watts, hp, amps) {
-            const totalWatts = (watts || 0) * (count || 1);
             return {
-                totalWatts,
-                totalHP: (hp || 0) * (count || 1),
-                totalAmps: (amps || 0) * (count || 1),
-                totalKW: totalWatts / 1000
+                item: String(name).trim(),
+                count: c,
+                watts: +w.toFixed(2),
+                amps: +perUnitAmps.toFixed(2),
+                totalKW: +totalKW.toFixed(3),
+                totalHP: +totalHP.toFixed(3),
+                totalAmps: +totalAmps.toFixed(2)
             };
         }
 
-        function updateTotals() {
-            let totalKW = 0, totalHP = 0, totalAmps = 0;
-            allLoadsData.forEach(load => {
-                totalKW += parseFloat(load.totalKW) || 0;
-                totalHP += parseFloat(load.totalHP) || 0;
-                totalAmps += (parseFloat(load.amps) || 0) * (parseFloat(load.count) || 1);
-            });
-            totalKWSpan.innerText = totalKW.toFixed(2);
-            totalHPSpan.innerText = totalHP.toFixed(2);
-            totalAmpsSpan.innerText = totalAmps.toFixed(2);
+        // Normalize any stored row → always matches new schema
+        function normalizeStoredRow(l) {
+            const count = parseInt(l.count) || 1;
+            const watts = num(l.watts);
+            // Rebuild with Excel formulas — ignores stale stored totals
+            return buildLoad(l.item, count, watts, DEFAULT_PF, "3");
         }
 
-        // Live Calculation Event Handling
-        wattInput.addEventListener('input', () => {
-            let w = parseFloat(wattInput.value) || 0;
-            if (w > 0) {
-                let res = calculateFromWatts(w, parseFloat(pfInput.value) || 0.92, phaseMode.value);
-                ampInput.value = res.amps.toFixed(2);
-                hpInput.value = res.hp.toFixed(3);
+        /* ============================================================
+           Totals — sum of column D and column E (like Excel SUM)
+           ============================================================ */
+        function computeTotals() {
+            let w = 0, kw = 0, hp = 0, a = 0;
+            for (const l of allLoadsData) {
+                w += (num(l.watts) * (num(l.count) || 1));
+                kw += num(l.totalKW);
+                hp += num(l.totalHP);
+                a += num(l.totalAmps);
             }
-        });
+            return { w, kw, hp, a };
+        }
+        function updateTotals() {
+            const t = computeTotals();
+            totalWattsSpan.innerText = Math.round(t.w).toLocaleString("en-US");
+            totalKWSpan.innerText = fmt(t.kw, 3);
+            totalHPSpan.innerText = fmt(t.hp, 3);
+            totalAmpsSpan.innerText = fmt(t.a, 2);
+        }
 
-        hpInput.addEventListener('input', () => {
-            let hp = parseFloat(hpInput.value) || 0;
-            if (hp > 0) {
-                let res = calculateFromHP(hp, parseFloat(pfInput.value) || 0.92, phaseMode.value);
-                wattInput.value = res.watts.toFixed(0);
-                ampInput.value = res.amps.toFixed(2);
+        /* ============================================================
+           Photos
+           ============================================================ */
+        function updatePhotoPreview(row, loadName) {
+            const photos = loadPhotos[loadName] || [];
+            const cell = row.cells[5];
+            if (!cell) return;
+            if (photos.length === 0) {
+                cell.innerHTML = '<span style="color:#ccc; font-size:9px;">—</span>';
+                return;
             }
-        });
+            cell.innerHTML = '<div class="photo-preview">' + photos.map((p, i) =>
+                `<img src="${p}" class="photo-thumb" onclick="event.stopPropagation(); window.enlargeImage('${p}')" title="صورة ${i + 1}">`
+            ).join("") + "</div>";
+        }
+        function compressImage(file) {
+            return new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        let { width, height } = img;
+                        const max = 600;
+                        if (width > max || height > max) {
+                            if (width > height) { height = height * max / width; width = max; }
+                            else { width = width * max / height; height = max; }
+                        }
+                        canvas.width = width; canvas.height = height;
+                        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL("image/jpeg", 0.7));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        async function addPhotosToLoad(loadName) {
+            if (isLoading) return;
+            const input = document.createElement("input");
+            input.type = "file"; input.accept = "image/*"; input.multiple = true;
+            input.onchange = async e => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+                showLoading(`جاري رفع ${files.length} صورة...`);
+                const newPhotos = [];
+                for (const f of files) newPhotos.push(await compressImage(f));
+                loadPhotos[loadName] = [...(loadPhotos[loadName] || []), ...newPhotos];
+                for (const row of tableBody.rows) if (row.cells[0].innerText === loadName) updatePhotoPreview(row, loadName);
+                if (editingRow && editingLoadName === loadName) showEditImagePreview(loadName);
+                hideLoading();
+                Swal.fire("تم الرفع", `تم إضافة ${newPhotos.length} صورة`, "success", { timer: 1400, showConfirmButton: false });
+            };
+            input.click();
+        }
+        async function removePhotoFromLoad(loadName, idx) {
+            const r = await Swal.fire({ title: "تأكيد الحذف", text: "هل أنت متأكد من حذف هذه الصورة؟", icon: "warning", showCancelButton: true, confirmButtonText: "نعم، حذف", cancelButtonText: "إلغاء" });
+            if (!r.isConfirmed) return;
+            if (!loadPhotos[loadName]) return;
+            loadPhotos[loadName].splice(idx, 1);
+            if (!loadPhotos[loadName].length) delete loadPhotos[loadName];
+            for (const row of tableBody.rows) if (row.cells[0].innerText === loadName) updatePhotoPreview(row, loadName);
+            if (editingRow && editingLoadName === loadName) showEditImagePreview(loadName);
+        }
+        function showEditImagePreview(loadName) {
+            const photos = loadPhotos[loadName] || [];
+            editImagePreview.classList.add("show");
+            editImageContainer.innerHTML = "";
+            photos.forEach((photo, idx) => {
+                const w = document.createElement("span");
+                w.className = "photo-wrapper";
+                w.innerHTML = `<img src="${photo}" onclick="window.enlargeImage('${photo}')"><button class="remove-photo-btn">✕</button>`;
+                editImageContainer.appendChild(w);
+                w.querySelector(".remove-photo-btn").onclick = e => { e.stopPropagation(); removePhotoFromLoad(loadName, idx); };
+            });
+            const addBtn = document.createElement("button");
+            addBtn.className = "add-photo-btn";
+            addBtn.innerHTML = '<i class="fas fa-plus"></i> إضافة';
+            addBtn.onclick = () => addPhotosToLoad(loadName);
+            editImageContainer.appendChild(addBtn);
+        }
+        window.enlargeImage = src => {
+            Swal.fire({ imageUrl: src, imageAlt: "الصورة", showCloseButton: true, showConfirmButton: false, width: "auto", background: "rgba(0,0,0,0.9)", imageWidth: "80%", imageHeight: "auto" });
+        };
 
-        ampInput.addEventListener('input', () => {
-            let a = parseFloat(ampInput.value) || 0;
-            if (a > 0) {
-                let res = calculateFromAmps(a, parseFloat(pfInput.value) || 0.92, phaseMode.value);
-                wattInput.value = res.watts.toFixed(0);
-                hpInput.value = res.hp.toFixed(3);
-            }
-        });
+        /* ============================================================
+           Add-form real-time recalculation
+           ------------------------------------------------------------
+           Watts is the primary input (matches Excel column C).
+           Amps is auto-calculated and shown (read-only).
+           ============================================================ */
+        let isRecalculating = false;
+        function recalcFromWatts() {
+            if (isRecalculating) return;
+            isRecalculating = true;
+            const w = num(wattInput.value);
+            const pf = num(pfInput.value, DEFAULT_PF) || DEFAULT_PF;
+            const mode = phaseMode.value;
+            const v = mode === "1" ? V_1PH : V_3PH;
+            const f = mode === "1" ? 1 : SQRT3;
+            ampInput.value = w > 0 ? (w / (f * v * pf)).toFixed(2) : "";
+            if (editingRow) phaseChangeIndicator.classList.add("show");
+            isRecalculating = false;
+        }
+        wattInput.addEventListener("input", recalcFromWatts);
+        pfInput.addEventListener("input", recalcFromWatts);
+        phaseMode.addEventListener("change", recalcFromWatts);
 
-        // Table Pagination Rendering
+        /* ============================================================
+           Table rendering — 5 Excel columns + photos + actions
+           ============================================================ */
         function renderTablePage() {
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageItems = allLoadsData.slice(start, end);
+            const total = allLoadsData.length;
+            const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+            if (currentPage > totalPages) currentPage = totalPages;
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const pageItems = allLoadsData.slice(start, start + PAGE_SIZE);
 
-            tableBody.innerHTML = '';
-            if (pageItems.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="9" style="color:var(--text-muted); padding:20px;">لا توجد أحمال مضافة</td></tr>`;
+            tableBody.innerHTML = "";
+            if (total === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:20px; color:#aaa;">لا توجد أحمال</td></tr>`;
             } else {
                 pageItems.forEach(load => {
                     const row = tableBody.insertRow();
-                    row.insertCell(0).innerHTML = `<strong>${escapeHtml(load.item)}</strong>`;
-                    row.insertCell(1).innerText = load.count;
-                    row.insertCell(2).innerText = load.watts;
-                    row.insertCell(3).innerText = load.hp;
-                    row.insertCell(4).innerText = load.amps;
-                    row.insertCell(5).innerText = load.totalKW;
-                    row.insertCell(6).innerText = load.totalHP;
-                    
-                    const photoCell = row.insertCell(7);
-                    const photos = loadPhotos[load.item] || [];
-                    photoCell.innerText = photos.length ? `📷 (${photos.length})` : '-';
-
-                    const actionCell = row.insertCell(8);
+                    row.insertCell(0).innerHTML = `<strong style="text-align:right; display:block;">${escapeHtml(load.item)}</strong>`;
+                    row.insertCell(1).innerHTML = load.count;
+                    row.insertCell(2).innerHTML = fmt(load.watts, 2);
+                    row.insertCell(3).innerHTML = `<strong>${fmt(load.totalKW, 3)}</strong>`;
+                    row.insertCell(4).innerHTML = `<strong>${fmt(load.totalHP, 3)}</strong>`;
+                    const photoCell = row.insertCell(5);
+                    updatePhotoPreview(row, load.item);
+                    const actionCell = row.insertCell(6);
                     actionCell.innerHTML = `
-                        <button class="btn-tbl btn-tbl-edit"><i class="fas fa-edit"></i></button>
-                        <button class="btn-tbl btn-tbl-del"><i class="fas fa-trash"></i></button>
-                    `;
-
-                    actionCell.querySelector('.btn-tbl-edit').onclick = () => startEditRow(load.item);
-                    actionCell.querySelector('.btn-tbl-del').onclick = () => {
+                        <button class="btn-edit-row" title="تعديل"><i class="fas fa-edit"></i></button>
+                        <button class="btn-delete-row" title="حذف"><i class="fas fa-trash-alt"></i></button>`;
+                    actionCell.querySelector(".btn-edit-row").onclick = () => startEditRow(row);
+                    actionCell.querySelector(".btn-delete-row").onclick = () => {
                         delete loadPhotos[load.item];
                         allLoadsData = allLoadsData.filter(l => l.item !== load.item);
+                        if (editingRow && editingLoadName === load.item) cancelEdit();
                         renderTablePage();
-                        updateTotals();
+                        refreshSidebar();
                     };
                 });
             }
             updateTotals();
-            updatePagination();
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(allLoadsData.length / itemsPerPage) || 1;
             pageInfo.textContent = `الصفحة ${currentPage} من ${totalPages}`;
             prevPageBtn.disabled = currentPage <= 1;
             nextPageBtn.disabled = currentPage >= totalPages;
         }
 
-        prevPageBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTablePage(); } };
-        nextPageBtn.onclick = () => { if (currentPage < Math.ceil(allLoadsData.length / itemsPerPage)) { currentPage++; renderTablePage(); } };
+        prevPageBtn.addEventListener("click", () => { if (currentPage > 1) { currentPage--; renderTablePage(); } });
+        nextPageBtn.addEventListener("click", () => {
+            const tp = Math.max(1, Math.ceil(allLoadsData.length / PAGE_SIZE));
+            if (currentPage < tp) { currentPage++; renderTablePage(); }
+        });
 
-        function addLoadToData(desc, count, watts, hp, amps) {
-            const totals = calculateRowTotals(count, watts, hp, amps);
-            allLoadsData.push({
-                item: desc,
-                count: count,
-                watts: watts || 0,
-                hp: hp ? hp.toFixed(3) : 0,
-                amps: totals.totalAmps.toFixed(2),
-                totalKW: totals.totalKW.toFixed(3),
-                totalHP: totals.totalHP.toFixed(3)
-            });
+        /* ============================================================
+           Add / Edit / Cancel
+           ============================================================ */
+        function addLoadToData(load) {
+            allLoadsData.push(load);
+            allLoadsData.sort((a, b) => a.item.localeCompare(b.item, "ar"));
+            currentPage = Math.max(1, Math.ceil(allLoadsData.length / PAGE_SIZE));
             renderTablePage();
+            return load;
         }
 
-        function startEditRow(itemName) {
-            const load = allLoadsData.find(l => l.item === itemName);
-            if (!load) return;
+        function startEditRow(row) {
+            if (editingRow && editingRow !== row) cancelEdit();
+            const name = row.cells[0].innerText;
+            editingRow = row;
+            editingLoadName = name;
 
-            editingLoadName = itemName;
-            loadNameInput.value = load.item;
-            countInput.value = load.count;
-            wattInput.value = load.watts;
-            hpInput.value = load.hp;
-            ampInput.value = load.amps;
+            loadNameInput.value = name;
+            countInput.value = row.cells[1].innerText;
+            wattInput.value = row.cells[2].innerText;
+            recalcFromWatts();
 
-            addBtnText.textContent = 'تحديث';
-            editingIndicator.style.display = 'inline';
-            btnCancelEdit.style.display = 'inline-flex';
-            btnAddLoad.style.background = '#f39c12';
-            showEditImagePreview(itemName);
+            addBtnText.textContent = "تحديث";
+            editingIndicator.classList.add("show");
+            btnCancelEdit.style.display = "inline-flex";
+            btnAddLoad.style.background = "#f4b942";
+            phaseChangeIndicator.classList.remove("show");
+            showEditImagePreview(name);
+            document.querySelector(".section-title").scrollIntoView({ behavior: "smooth", block: "center" });
         }
 
         function cancelEdit() {
+            editingRow = null;
             editingLoadName = null;
-            addBtnText.textContent = 'إضافة';
-            editingIndicator.style.display = 'none';
-            btnCancelEdit.style.display = 'none';
-            btnAddLoad.style.background = 'var(--accent)';
-            editImagePreview.classList.remove('show');
-            loadNameInput.value = '';
-            countInput.value = '1';
-            wattInput.value = '';
-            hpInput.value = '';
-            ampInput.value = '';
+            addBtnText.textContent = "إضافة";
+            editingIndicator.classList.remove("show");
+            btnCancelEdit.style.display = "none";
+            btnAddLoad.style.background = "";
+            editImagePreview.classList.remove("show");
+            editImageContainer.innerHTML = "";
+            phaseChangeIndicator.classList.remove("show");
+            loadNameInput.value = "";
+            countInput.value = "1";
+            wattInput.value = "";
+            ampInput.value = "";
         }
-
-        btnCancelEdit.onclick = cancelEdit;
+        btnCancelEdit.addEventListener("click", cancelEdit);
 
         btnAddLoad.onclick = () => {
-            const desc = loadNameInput.value.trim();
+            if (isLoading) return;
+            const name = loadNameInput.value.trim();
+            if (!name) { Swal.fire("تنبيه", "يرجى إدخال وصف الحمل", "warning"); return; }
             const count = parseInt(countInput.value) || 1;
-            let watts = parseFloat(wattInput.value) || 0;
-            let hp = parseFloat(hpInput.value) || 0;
-            let amps = parseFloat(ampInput.value) || 0;
+            const watts = num(wattInput.value);
+            if (watts <= 0) { Swal.fire("تنبيه", "يرجى إدخال قيمة الوات", "info"); return; }
 
-            if (!desc) { Swal.fire("تنبيه", "يرجى إدخال وصف الحمل", "warning"); return; }
+            const pf = num(pfInput.value, DEFAULT_PF) || DEFAULT_PF;
+            const mode = phaseMode.value;
+            const load = buildLoad(name, count, watts, pf, mode);
 
-            if (editingLoadName) {
-                allLoadsData = allLoadsData.filter(l => l.item !== editingLoadName);
-                if (editingLoadName !== desc && loadPhotos[editingLoadName]) {
-                    loadPhotos[desc] = loadPhotos[editingLoadName];
-                    delete loadPhotos[editingLoadName];
+            if (editingRow && editingLoadName) {
+                const oldName = editingLoadName;
+                allLoadsData = allLoadsData.filter(l => l.item !== oldName);
+                if (oldName !== load.item && loadPhotos[oldName]) {
+                    loadPhotos[load.item] = loadPhotos[oldName];
+                    delete loadPhotos[oldName];
                 }
+                addLoadToData(load);
                 cancelEdit();
+                Swal.fire("✅ تم التحديث", `تم تحديث الحمل "${load.item}"`, "success", { timer: 1400, showConfirmButton: false });
+            } else {
+                addLoadToData(load);
+                loadNameInput.value = "";
+                countInput.value = "1";
+                wattInput.value = "";
+                ampInput.value = "";
+                loadNameInput.focus();
             }
-
-            addLoadToData(desc, count, watts, hp, amps);
-            cancelEdit();
+            refreshSidebar();
         };
 
-        // Firebase Save & Sync
+        /* ============================================================
+           Save / Reset / Load record
+           ============================================================ */
         btnSave.onclick = async () => {
+            if (isLoading) return;
             const meterNo = mnoInput.value.trim();
             const name = mnameInput.value.trim();
-            if (!meterNo || !name) {
-                Swal.fire("تنبيه", "اسم المشترك ورقم العداد مطلوبان!", "warning");
-                return;
-            }
-
+            const code = mcoInput.value.trim();
+            if (!meterNo) { await Swal.fire("خطأ", "رقم العداد مطلوب", "error"); return; }
+            if (!name) { await Swal.fire("خطأ", "اسم المشترك مطلوب", "error"); return; }
             showLoading("جاري الحفظ...");
             try {
-                let totalKW = 0, totalHP = 0, totalAmps = 0;
-                allLoadsData.forEach(l => {
-                    totalKW += parseFloat(l.totalKW) || 0;
-                    totalHP += parseFloat(l.totalHP) || 0;
-                    totalAmps += parseFloat(l.amps) * parseFloat(l.count);
-                });
-
-                const dataToSave = {
+                const t = computeTotals();
+                const data = {
                     name,
                     meter_no: meterNo,
-                    code: mcoInput.value.trim(),
-                    description: notesInput.value.trim(),
+                    code: code || "",
+                    description: notesInput.value || "",
                     loads: allLoadsData,
                     photos: loadPhotos,
-                    totalKW: totalKW.toFixed(2),
-                    totalHP: totalHP.toFixed(2),
-                    totalAmps: totalAmps.toFixed(2),
+                    totalKW: t.kw.toFixed(2),
+                    totalHP: t.hp.toFixed(2),
+                    totalAmps: t.a.toFixed(2),
                     lastUpdated: new Date().toISOString()
                 };
-
-                await set(ref(db, `Munipilation/${meterNo}`), dataToSave);
+                await set(ref(db, `${NODE}/${meterNo}`), data);
+                currentMeterNo = meterNo;
                 hideLoading();
-                Swal.fire("تم الحفظ", "تمت عملية الحفظ بنجاح", "success");
+                await Swal.fire({ title: "تم الحفظ", text: "تم حفظ البيانات بنجاح", icon: "success", timer: 1400, showConfirmButton: false });
                 refreshSidebar();
-            } catch (err) {
+            } catch (e) {
                 hideLoading();
-                Swal.fire("خطأ", err.message, "error");
+                await Swal.fire("خطأ", e.message, "error");
             }
         };
 
-        // Sidebar Database Explorer
+        function resetForm() {
+            mnameInput.value = "";
+            mnoInput.value = "";
+            mcoInput.value = "";
+            notesInput.value = "";
+            allLoadsData = [];
+            loadPhotos = {};
+            currentMeterNo = null;
+            cancelEdit();
+            currentPage = 1;
+            renderTablePage();
+        }
+
+        async function loadDataToMainForm(meterNo) {
+            if (!meterNo) return null;
+            showLoading("جاري تحميل البيانات...");
+            try {
+                const snap = await get(ref(db, `${NODE}/${meterNo}`));
+                const data = snap.val();
+                hideLoading();
+                if (!data || data.meter_no !== meterNo) return null;
+                resetForm();
+                mnameInput.value = data.name || "";
+                mnoInput.value = data.meter_no || "";
+                mcoInput.value = data.code || "";
+                notesInput.value = data.description || "";
+
+                if (Array.isArray(data.loads)) {
+                    // Re-normalize every row so totals match the Excel formulas
+                    allLoadsData = data.loads.map(normalizeStoredRow);
+                    allLoadsData.sort((a, b) => a.item.localeCompare(b.item, "ar"));
+                    currentPage = 1;
+                    renderTablePage();
+                }
+                if (data.photos && typeof data.photos === "object") {
+                    loadPhotos = JSON.parse(JSON.stringify(data.photos));
+                    for (const row of tableBody.rows) {
+                        const n = row.cells[0].innerText;
+                        if (loadPhotos[n]) updatePhotoPreview(row, n);
+                    }
+                }
+                currentMeterNo = meterNo;
+                highlightActiveRecord(meterNo);
+                return data;
+            } catch (err) {
+                hideLoading();
+                console.error(err);
+                return null;
+            }
+        }
+
+        /* ============================================================
+           Sidebar
+           ============================================================ */
+        function renderRecords(records) {
+            if (!records || records.length === 0) {
+                recordsList.innerHTML = `<div class="no-records"><i class="fas fa-search"></i><p>لا توجد نتائج</p></div>`;
+                return;
+            }
+            recordsList.innerHTML = records.map(record => {
+                const isActive = record.key === currentMeterNo;
+                const loadCount = Array.isArray(record.loads) ? record.loads.length : 0;
+                return `
+                    <div class="record-item ${isActive ? "active" : ""}" data-meter="${record.key}" onclick="window.selectRecord('${record.key}')">
+                        <div class="record-badge">${record.totalKW || "0.00"} ك.وات</div>
+                        <div class="record-name">${escapeHtml(record.name || "غير معروف")}</div>
+                        <div class="record-meta">
+                            <span><i class="fas fa-id-card"></i> ${escapeHtml(record.meter_no || "-")}</span>
+                            <span><i class="fas fa-boxes"></i> ${loadCount}</span>
+                            <span><i class="fas fa-clock"></i> ${record.lastUpdated ? new Date(record.lastUpdated).toLocaleDateString("ar-EG") : "-"}</span>
+                        </div>
+                        <div class="record-actions">
+                            <button class="btn-view-record" onclick="event.stopPropagation(); window.viewFullRecord('${record.key}')"><i class="fas fa-eye"></i></button>
+                            <button class="btn-delete-record" onclick="event.stopPropagation(); window.deleteRecord('${record.key}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>`;
+            }).join("");
+        }
         async function refreshSidebar() {
             try {
-                const snap = await get(ref(db, "Munipilation"));
+                const snap = await get(ref(db, NODE));
                 const data = snap.val();
-                recordsList.innerHTML = '';
-                allRecords = [];
-
-                if (data) {
-                    Object.entries(data).forEach(([key, val]) => {
-                        allRecords.push({ key, ...val });
-                    });
-
-                    allRecords.forEach(rec => {
-                        const card = document.createElement('div');
-                        card.className = `record-card ${rec.key === currentMeterNo ? 'active' : ''}`;
-                        card.innerHTML = `
-                            <span class="badge">${rec.totalKW || '0'} KW</span>
-                            <div class="title">${escapeHtml(rec.name)}</div>
-                            <div class="meta">
-                                <span><i class="fas fa-id-card"></i> ${escapeHtml(rec.meter_no)}</span>
-                                <span><i class="fas fa-boxes"></i> ${rec.loads ? rec.loads.length : 0} أحمال</span>
-                            </div>
-                        `;
-                        card.onclick = () => loadRecordData(rec.key);
-                        recordsList.appendChild(card);
-                    });
-                } else {
-                    recordsList.innerHTML = `<div style="text-align:center; padding:15px; color:#aaa;">لا توجد سجلات</div>`;
+                allRecords = data ? Object.entries(data).map(([key, val]) => ({ key, ...val })) : [];
+                if (!allRecords.length) {
+                    recordsList.innerHTML = `<div class="no-records"><i class="fas fa-database"></i><p>لا توجد بيانات</p></div>`;
+                    return;
                 }
-            } catch (err) {
-                recordsList.innerHTML = `<div style="text-align:center; color:red;">خطأ في الاتصال</div>`;
+                renderRecords(allRecords);
+            } catch {
+                recordsList.innerHTML = `<div class="no-records"><i class="fas fa-exclamation-circle"></i><p>خطأ في التحميل</p></div>`;
             }
         }
+        function highlightActiveRecord(meterNo) {
+            recordsList.querySelectorAll(".record-item").forEach(item => {
+                item.classList.toggle("active", item.dataset.meter === meterNo);
+            });
+        }
+        window.selectRecord = meterNo => loadDataToMainForm(meterNo);
+        sidebarSearch.addEventListener("input", e => {
+            const q = e.target.value.trim().toLowerCase();
+            if (!q) { renderRecords(allRecords); return; }
+            const f = allRecords.filter(r =>
+                (r.name && r.name.toLowerCase().includes(q)) ||
+                (r.meter_no && r.meter_no.toLowerCase().includes(q)) ||
+                (r.code && r.code.toLowerCase().includes(q))
+            );
+            renderRecords(f);
+        });
+        refreshBtn.onclick = refreshSidebar;
+        filterBtn.onclick = () => { sidebarSearch.value = ""; renderRecords(allRecords); };
 
-        async function loadRecordData(meterNo) {
+        /* ============================================================
+           View record — SAME columns as the Excel file
+           ============================================================ */
+        window.viewFullRecord = async meterNo => {
+            if (!meterNo) { await Swal.fire("خطأ", "رقم العداد غير صالح", "error"); return; }
             showLoading("جاري التحميل...");
             try {
-                const snap = await get(ref(db, `Munipilation/${meterNo}`));
+                const snap = await get(ref(db, `${NODE}/${meterNo}`));
                 const data = snap.val();
                 hideLoading();
-                if (data) {
-                    mnameInput.value = data.name || '';
-                    mnoInput.value = data.meter_no || '';
-                    mcoInput.value = data.code || '';
-                    notesInput.value = data.description || '';
-                    allLoadsData = data.loads || [];
-                    loadPhotos = data.photos || {};
-                    currentMeterNo = meterNo;
-                    renderTablePage();
-                    refreshSidebar();
-                }
+                if (!data) { await Swal.fire("خطأ", "لم يتم العثور على البيانات", "error"); return; }
+
+                const photos = data.photos || {};
+                let html = `
+                    <div style="overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; font-size:11px;">
+                    <thead><tr style="background:#0b2b40; color:white;">
+                        <th style="padding:6px; text-align:right;">الحمل</th>
+                        <th style="padding:6px;">العدد</th>
+                        <th style="padding:6px;">وات</th>
+                        <th style="padding:6px;">اجمالي كيلو وات</th>
+                        <th style="padding:6px;">اجمالي حصان</th>
+                        <th style="padding:6px;">صور</th>
+                    </tr></thead><tbody>`;
+
+                let tKW = 0, tHP = 0;
+                (data.loads || []).forEach(load => {
+                    const n = normalizeStoredRow(load);
+                    tKW += n.totalKW; tHP += n.totalHP;
+                    const lp = photos[load.item] || [];
+                    let p = lp.slice(0, 3).map(ph =>
+                        `<img src="${ph}" style="width:30px;height:30px;object-fit:cover;border-radius:4px;cursor:pointer;margin:1px;" onclick="window.enlargeImage('${ph}')">`
+                    ).join("");
+                    if (lp.length > 3) p += `<span style="font-size:9px;color:#666;">+${lp.length - 3}</span>`;
+                    html += `<tr>
+                        <td style="padding:5px; text-align:right;">${escapeHtml(n.item)}</td>
+                        <td style="padding:5px; text-align:center;">${n.count}</td>
+                        <td style="padding:5px; text-align:center;">${fmt(n.watts, 2)}</td>
+                        <td style="padding:5px; text-align:center; font-weight:600;">${fmt(n.totalKW, 3)}</td>
+                        <td style="padding:5px; text-align:center; font-weight:600;">${fmt(n.totalHP, 3)}</td>
+                        <td style="padding:5px; text-align:center;">${p}</td>
+                    </tr>`;
+                });
+                html += `<tfoot><tr style="background:#eef2f5; font-weight:bold;">
+                    <td colspan="3" style="padding:6px; text-align:right;">الإجمالي</td>
+                    <td style="padding:6px; text-align:center;">${fmt(tKW, 3)}</td>
+                    <td style="padding:6px; text-align:center;">${fmt(tHP, 3)}</td>
+                    <td style="padding:6px; text-align:center; font-size:0.7rem; color:#666;">${data.totalAmps || 0} A</td>
+                </tr></tfoot></table></div>`;
+
+                await Swal.fire({
+                    title: `📋 ${escapeHtml(data.name || "")}`,
+                    html: `<div style="text-align:right; max-height:450px; overflow-y:auto;">
+                        <p><strong>العداد:</strong> ${escapeHtml(data.meter_no || "-")}</p>
+                        <p><strong>الكود:</strong> ${escapeHtml(data.code || "-")}</p>
+                        <p><strong>الملاحظات:</strong> ${escapeHtml(data.description || "-")}</p>
+                        ${html}
+                        <div style="margin-top:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                            <button onclick="window.exportToExcel('${meterNo}')" style="background:#217346; color:white; border:none; padding:6px 20px; border-radius:25px; font-weight:700; cursor:pointer; font-size:0.7rem;"><i class="fas fa-file-excel"></i> Excel</button>
+                        </div>
+                    </div>`,
+                    width: "95%", maxWidth: "1000px",
+                    showConfirmButton: true, confirmButtonText: "إغلاق", allowOutsideClick: false
+                });
             } catch (err) {
                 hideLoading();
-                Swal.fire("خطأ", "تعذر التحميل", "error");
+                console.error(err);
+                await Swal.fire("خطأ", "فشل تحميل البيانات", "error");
             }
+        };
+
+        window.deleteRecord = async meterNo => {
+            const r = await Swal.fire({
+                title: "تأكيد الحذف", text: "هل أنت متأكد من حذف هذا السجل؟",
+                icon: "warning", showCancelButton: true,
+                confirmButtonText: "نعم، حذف", cancelButtonText: "إلغاء", confirmButtonColor: "#e1573c"
+            });
+            if (!r.isConfirmed) return;
+            showLoading("جاري الحذف...");
+            try {
+                await remove(ref(db, `${NODE}/${meterNo}`));
+                hideLoading();
+                await Swal.fire("تم الحذف", "تم حذف السجل بنجاح", "success", { timer: 1400, showConfirmButton: false });
+                if (currentMeterNo === meterNo) resetForm();
+                refreshSidebar();
+            } catch {
+                hideLoading();
+                await Swal.fire("خطأ", "فشل الحذف", "error");
+            }
+        };
+
+        /* ============================================================
+           EXPORT — exactly the same layout as the uploaded Excel file
+           Columns: A=الحمل  B=العدد  C=وات  D=اجمالي كيلو وات  E=اجمالي حصان
+           D and E are written as live Excel formulas:
+             D = (B * C) / 1000
+             E = D / 0.746
+           ============================================================ */
+        window.exportToExcel = async meterNo => {
+            showLoading("جاري التصدير...");
+            try {
+                const snap = await get(ref(db, `${NODE}/${meterNo}`));
+                const data = snap.val();
+                if (!data) { hideLoading(); await Swal.fire("خطأ", "لم يتم العثور على البيانات", "error"); return; }
+
+                const loads = (data.loads || []).map(normalizeStoredRow);
+
+                const rows = [
+                    ["تقرير بيان الأحمال الكهربائية", "", "", "", ""],
+                    [`الاسم: ${data.name || ""}`, "", "", "", ""],
+                    [`العداد: ${data.meter_no || ""}`, "", "", "", ""],
+                    [`الكود: ${data.code || ""}`, "", "", "", ""],
+                    [`الملاحظات: ${data.description || ""}`, "", "", "", ""],
+                    ["", "", "", "", ""],
+                    ["الحمل", "العدد", "وات", "اجمالي كيلو وات", "اجمالي حصان"]
+                ];
+                loads.forEach(l => rows.push([l.item, l.count, l.watts, l.totalKW, l.totalHP]));
+
+                const totKW = loads.reduce((s, l) => s + l.totalKW, 0);
+                const totHP = loads.reduce((s, l) => s + l.totalHP, 0);
+                rows.push(["الإجمالي", "", loads.reduce((s, l) => s + l.watts * l.count, 0), +totKW.toFixed(3), +totHP.toFixed(3)]);
+
+                const ws = XLSX.utils.aoa_to_sheet(rows);
+                ws["!cols"] = [{ wch: 26 }, { wch: 8 }, { wch: 10 }, { wch: 16 }, { wch: 16 }];
+
+                // Write Excel formulas for D and E (columns 4 and 5, 1-based)
+                const headerRow = 7;
+                loads.forEach((l, i) => {
+                    const r = headerRow + 1 + i;
+                    ws[`D${r}`] = { t: "n", f: `(B${r}*C${r})/1000`, v: l.totalKW };
+                    ws[`E${r}`] = { t: "n", f: `D${r}/0.746`, v: l.totalHP };
+                });
+                const totalRow = headerRow + 1 + loads.length;
+                ws[`C${totalRow}`] = { t: "n", f: `SUM(C${headerRow + 1}:C${totalRow - 1})` };
+                ws[`D${totalRow}`] = { t: "n", f: `SUM(D${headerRow + 1}:D${totalRow - 1})`, v: +totKW.toFixed(3) };
+                ws[`E${totalRow}`] = { t: "n", f: `SUM(E${headerRow + 1}:E${totalRow - 1})`, v: +totHP.toFixed(3) };
+
+                const wb = XLSX.utils.book_new();
+                const sheetName = (data.name || "الأحمال").substring(0, 30).replace(/[\\/?*\[\]]/g, "") || "الأحمال";
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                XLSX.writeFile(wb, `تقرير-${data.name || "احمال"}-${meterNo}.xlsx`);
+
+                hideLoading();
+                await Swal.fire("تم التصدير", "تم إنشاء ملف Excel", "success", { timer: 1400, showConfirmButton: false });
+            } catch (e) {
+                console.error(e);
+                hideLoading();
+                await Swal.fire("خطأ", "فشل التصدير", "error");
+            }
+        };
+
+        /* ============================================================
+           UPLOAD — parses exactly columns A/B/C from the Excel file
+           (الحمل / العدد / وات) and rebuilds D/E using Excel formulas.
+           ============================================================ */
+        function parseExcelLoads(rows) {
+            if (!rows || !rows.length) return [];
+
+            const nameRe = /^(الحمل|اسم\s*الحمل|وصف\s*الحمل|نوع\s*الحمل)$/;
+            const countRe = /^(العدد|عدد)$/;
+            const wattsRe = /^(وات|واط|watt|w)$/i;
+            const totalKwRe = /^(اجمالي\s*كيلو\s*وات|ك\.وات|إجمالي\s*كيلو\s*وات)$/;
+            const totalHpRe = /^(اجمالي\s*حصان|إجمالي\s*حصان)$/;
+            const totalRe = /^(الإجمالي|المجموع|total)$/i;
+
+            let headerRow = -1;
+            let colName = 0, colCount = 1, colWatts = 2;
+
+            for (let i = 0; i < Math.min(rows.length, 15); i++) {
+                const row = rows[i] || [];
+                const found = {};
+                for (let j = 0; j < row.length; j++) {
+                    const cell = String(row[j] || "").trim();
+                    if (!cell) continue;
+                    if (nameRe.test(cell)) found.name = j;
+                    else if (countRe.test(cell)) found.count = j;
+                    else if (wattsRe.test(cell)) found.watts = j;
+                    else if (totalKwRe.test(cell)) found.totalKW = j;
+                    else if (totalHpRe.test(cell)) found.totalHP = j;
+                }
+                if (found.name !== undefined && (found.count !== undefined || found.watts !== undefined)) {
+                    headerRow = i;
+                    colName = found.name;
+                    if (found.count !== undefined) colCount = found.count;
+                    if (found.watts !== undefined) colWatts = found.watts;
+                    break;
+                }
+            }
+
+            const startRow = headerRow >= 0 ? headerRow + 1 : 0;
+            const loads = [];
+
+            for (let i = startRow; i < rows.length; i++) {
+                const row = rows[i] || [];
+                const name = String(row[colName] || "").trim();
+                if (!name) continue;
+                if (totalRe.test(name)) continue;
+
+                const count = parseInt(row[colCount]) || 1;
+                const watts = parseFloat(row[colWatts]) || 0;
+                if (watts <= 0) continue;
+
+                loads.push({ item: name, count, watts });
+            }
+            return loads;
         }
 
-        function showEditImagePreview(loadName) {
-            const photos = loadPhotos[loadName] || [];
-            editImagePreview.classList.add('show');
-            editImageContainer.innerHTML = '';
-            
-            photos.forEach((p, idx) => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'photo-wrapper';
-                wrapper.innerHTML = `<img src="${p}"><button class="remove-btn">✕</button>`;
-                wrapper.querySelector('.remove-btn').onclick = () => {
-                    loadPhotos[loadName].splice(idx, 1);
-                    showEditImagePreview(loadName);
-                    renderTablePage();
+        btnUploadExcel.addEventListener("click", () => excelFileInput.click());
+
+        excelFileInput.addEventListener("change", async e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            showLoading("جاري قراءة الملف...");
+            try {
+                const buf = await file.arrayBuffer();
+                const wb = XLSX.read(buf, { type: "array" });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                const parsed = parseExcelLoads(rows);
+                if (!parsed.length) {
+                    hideLoading();
+                    await Swal.fire("تنبيه", "لم يتم العثور على بيانات صالحة في الملف", "warning");
+                    return;
+                }
+                // Rebuild every row with the exact Excel formulas
+                const normalized = parsed.map(p => buildLoad(p.item, p.count, p.watts, DEFAULT_PF, "3"));
+
+                let tKW = 0, tHP = 0, tAmps = 0;
+                for (const n of normalized) { tKW += n.totalKW; tHP += n.totalHP; tAmps += n.totalAmps; }
+
+                const ts = new Date().toISOString().replace(/[:.]/g, "-");
+                const id = `loads_${ts}`;
+                const rec = {
+                    name: wb.SheetNames[0] || "الأحمال المضافة",
+                    meter_no: id,
+                    code: "",
+                    description: `رفع من ${file.name} - ${normalized.length} حمل`,
+                    loads: normalized,
+                    photos: {},
+                    totalKW: tKW.toFixed(2),
+                    totalHP: tHP.toFixed(2),
+                    totalAmps: tAmps.toFixed(2),
+                    lastUpdated: new Date().toISOString(),
+                    sourceFile: file.name,
+                    isStandard: true
                 };
-                editImageContainer.appendChild(wrapper);
+                await set(ref(db, `${NODE}/${id}`), rec);
+                hideLoading();
+                await Swal.fire({
+                    title: "✅ تم الرفع",
+                    html: `تم رفع <strong>${normalized.length}</strong> حمل<br>
+                           <small>إجمالي: ${tKW.toFixed(3)} ك.وات — ${tHP.toFixed(3)} حصان</small>`,
+                    icon: "success", timer: 2200, showConfirmButton: true
+                });
+                refreshSidebar();
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                await Swal.fire("خطأ", "حدث خطأ أثناء قراءة الملف", "error");
+            }
+            excelFileInput.value = "";
+        });
+
+        /* ============================================================
+           Delete single load from a stored record (used by duplicates)
+           ============================================================ */
+        async function deleteLoadFromDatabase(sourceKey, loadItem) {
+            try {
+                const snap = await get(ref(db, `${NODE}/${sourceKey}`));
+                const data = snap.val();
+                if (!data || !Array.isArray(data.loads)) return;
+                const updated = data.loads.filter(l => l.item !== loadItem);
+                if (updated.length === data.loads.length) return;
+                const normalized = updated.map(normalizeStoredRow);
+                const tKW = normalized.reduce((s, l) => s + l.totalKW, 0);
+                const tHP = normalized.reduce((s, l) => s + l.totalHP, 0);
+                const tA = normalized.reduce((s, l) => s + l.totalAmps, 0);
+                await set(ref(db, `${NODE}/${sourceKey}`), {
+                    ...data,
+                    loads: normalized,
+                    totalKW: tKW.toFixed(2),
+                    totalHP: tHP.toFixed(2),
+                    totalAmps: tA.toFixed(2),
+                    lastUpdated: new Date().toISOString()
+                });
+                refreshSidebar();
+            } catch (e) { console.error(e); }
+        }
+
+        /* ============================================================
+           Standard loads popup (uses same Excel columns)
+           ============================================================ */
+        btnLoadStandard.onclick = async () => {
+            if (isLoading) return;
+            showLoading("جاري التحميل...");
+            try {
+                const snap = await get(ref(db, NODE));
+                const data = snap.val();
+                hideLoading();
+                if (!data) { await Swal.fire("تنبيه", "لا توجد أحمال محفوظة", "info"); return; }
+
+                const allLoads = [];
+                Object.entries(data).forEach(([key, val]) => {
+                    if (Array.isArray(val.loads)) {
+                        val.loads.forEach(load => allLoads.push({
+                            ...normalizeStoredRow(load),
+                            sourceKey: key,
+                            sourceName: val.name || "مشترك"
+                        }));
+                    }
+                });
+                if (!allLoads.length) { await Swal.fire("تنبيه", "لا توجد أحمال", "info"); return; }
+
+                const nameMap = {};
+                allLoads.forEach((l, i) => { (nameMap[l.item] = nameMap[l.item] || []).push(i); });
+                const dupGroups = {};
+                Object.entries(nameMap).forEach(([n, idxs]) => { if (idxs.length > 1) dupGroups[n] = idxs.map(i => allLoads[i]); });
+                const hasDup = Object.keys(dupGroups).length > 0;
+
+                const itemsHtml = allLoads.map((load, idx) => {
+                    const isDup = dupGroups[load.item] && dupGroups[load.item].length > 1;
+                    return `
+                        <div class="standard-load-item" data-index="${idx}" style="${isDup ? "border-right:3px solid #e1573c; background:#fff5f5;" : ""}">
+                            <input type="checkbox" class="load-checkbox" data-index="${idx}">
+                            <div class="load-info">
+                                <span class="load-name">${escapeHtml(load.item)}${isDup ? ' <span style="color:#e1573c; font-size:0.55rem;">🔴 مكرر</span>' : ""}</span>
+                                <div class="load-details">
+                                    <span>${fmt(load.watts, 2)} وات</span>
+                                    <span>${fmt(load.totalKW, 3)} ك.وات</span>
+                                    <span>${fmt(load.totalHP, 3)} حصان</span>
+                                </div>
+                                <span class="load-source">📌 ${escapeHtml(load.sourceName)}</span>
+                            </div>
+                        </div>`;
+                }).join("");
+
+                const html = `
+                    <div style="text-align:right; width:100%;">
+                        <div class="loads-header">
+                            <input type="text" id="loadsSearchInput" class="loads-search" placeholder="بحث في الأحمال...">
+                            <span class="loads-count">إجمالي: ${allLoads.length} حمل
+                                ${hasDup ? `| <span style="color:#e1573c;">🔴 ${Object.keys(dupGroups).length} نوع مكرر</span>` : ""}
+                            </span>
+                        </div>
+                        <div class="loads-list-container">${itemsHtml}</div>
+                        <div class="loads-actions">
+                            <button class="btn-select-all" id="selectAllStd"><i class="fas fa-check-double"></i> تحديد الكل</button>
+                            ${hasDup ? `<button class="btn-show-duplicates" id="showDuplicatesBtn"><i class="fas fa-clone"></i> إدارة المكررات (${Object.keys(dupGroups).length})</button>` : ""}
+                            <button class="btn-add-selected" id="addSelectedStd"><i class="fas fa-plus-circle"></i> إضافة المحدد</button>
+                            <button class="btn-close" onclick="Swal.close()"><i class="fas fa-times"></i> إلغاء</button>
+                        </div>
+                    </div>`;
+
+                await Swal.fire({
+                    title: "📋 الأحمال المضافة",
+                    html, width: "90%", maxWidth: "700px",
+                    showConfirmButton: false, showCancelButton: false, allowOutsideClick: false,
+                    didOpen: () => {
+                        document.getElementById("loadsSearchInput")?.addEventListener("input", e => {
+                            const q = e.target.value.trim().toLowerCase();
+                            document.querySelectorAll(".standard-load-item").forEach(el => {
+                                const n = el.querySelector(".load-name")?.textContent || "";
+                                el.style.display = n.toLowerCase().includes(q) ? "flex" : "none";
+                            });
+                        });
+                        document.getElementById("selectAllStd")?.addEventListener("click", () => {
+                            document.querySelectorAll(".load-checkbox").forEach(cb => cb.checked = true);
+                        });
+                        document.getElementById("addSelectedStd")?.addEventListener("click", async () => {
+                            const sel = [];
+                            document.querySelectorAll(".load-checkbox:checked").forEach(cb => {
+                                const i = parseInt(cb.dataset.index);
+                                if (allLoads[i]) sel.push(allLoads[i]);
+                            });
+                            if (!sel.length) { await Swal.fire("تنبيه", "اختر حمل واحد على الأقل", "warning"); return; }
+                            for (const s of sel) {
+                                addLoadToData(buildLoad(s.item, s.count, s.watts, DEFAULT_PF, "3"));
+                            }
+                            await Swal.fire("✅ تم الإضافة", `تم إضافة ${sel.length} حمل`, "success", { timer: 1400, showConfirmButton: false });
+                            Swal.close();
+                        });
+                        document.getElementById("showDuplicatesBtn")?.addEventListener("click", () => {
+                            showDuplicatePopup(allLoads, dupGroups);
+                        });
+                    }
+                });
+            } catch (err) {
+                console.error(err);
+                hideLoading();
+                await Swal.fire("خطأ", "فشل التحميل", "error");
+            }
+        };
+
+        /* ============================================================
+           Duplicates popup
+           ============================================================ */
+        async function showDuplicatePopup(allLoads, dupGroups) {
+            const keys = Object.keys(dupGroups);
+            if (!keys.length) { await Swal.fire("تنبيه", "لا توجد مكررات", "info"); return; }
+
+            const indexMap = {};
+            let counter = 0;
+            let html = `<div style="text-align:right; width:100%; max-height:500px; overflow-y:auto;">
+                <div style="margin-bottom:10px;">
+                    <span style="font-weight:bold; color:#e1573c;">📋 المكررات (${keys.length} نوع)</span>
+                    <span style="font-size:0.65rem; color:#888; margin-right:8px;">اختر المكررات التي تريد حذفها</span>
+                </div>`;
+
+            keys.forEach(name => {
+                const items = dupGroups[name];
+                html += `<div class="dup-group-header">
+                            <span>📌 ${escapeHtml(name)}</span>
+                            <span class="dup-count">${items.length} مكرر</span>
+                         </div>`;
+                items.forEach((load, idx) => {
+                    indexMap[counter] = { load, groupName: name };
+                    html += `<div class="dup-checkbox-item" data-dup-index="${counter}">
+                        <input type="checkbox" class="dup-checkbox" data-dup-index="${counter}" checked>
+                        <div class="dup-info">
+                            <span class="dup-name">#${idx + 1}</span>
+                            <div class="dup-details">
+                                <span>${fmt(load.watts, 2)} وات</span>
+                                <span>${fmt(load.totalKW, 3)} ك.وات</span>
+                                <span>${fmt(load.totalHP, 3)} حصان</span>
+                            </div>
+                            <span class="dup-source">📌 ${escapeHtml(load.sourceName)}</span>
+                        </div>
+                        <button class="dup-keep-btn" data-dup-index="${counter}"
+                            style="background:#2e8b57;color:white;border:none;border-radius:50%;
+                                   width:22px;height:22px;cursor:pointer;font-size:10px;
+                                   display:flex;align-items:center;justify-content:center;"
+                            title="الاحتفاظ بهذا">⭐</button>
+                    </div>`;
+                    counter++;
+                });
+            });
+            html += `<div class="dup-actions">
+                <button class="btn-dup-select-all" id="dupSelectAll">تحديد الكل</button>
+                <button class="btn-dup-deselect-all" id="dupDeselectAll">إلغاء التحديد</button>
+                <button class="btn-dup-remove" id="dupRemoveSelected">🗑️ حذف المحدد</button>
+                <button class="btn-dup-close" onclick="Swal.close()">إلغاء</button>
+            </div></div>`;
+
+            await Swal.fire({
+                title: "📋 إدارة المكررات",
+                html, width: "90%", maxWidth: "700px",
+                showConfirmButton: false, showCancelButton: false, allowOutsideClick: false,
+                didOpen: () => {
+                    const upd = () => {
+                        const n = document.querySelectorAll(".dup-checkbox:checked").length;
+                        const b = document.getElementById("dupRemoveSelected");
+                        if (b) b.innerHTML = `🗑️ حذف المحدد (${n})`;
+                    };
+                    document.getElementById("dupSelectAll")?.addEventListener("click", () => {
+                        document.querySelectorAll(".dup-checkbox").forEach(cb => cb.checked = true); upd();
+                    });
+                    document.getElementById("dupDeselectAll")?.addEventListener("click", () => {
+                        document.querySelectorAll(".dup-checkbox").forEach(cb => cb.checked = false); upd();
+                    });
+                    document.querySelectorAll(".dup-keep-btn").forEach(b => b.addEventListener("click", e => {
+                        e.stopPropagation();
+                        const i = parseInt(b.dataset.dupIndex);
+                        const cb = document.querySelector(`.dup-checkbox[data-dup-index="${i}"]`);
+                        if (cb) { cb.checked = false; upd(); }
+                    }));
+                    document.querySelectorAll(".dup-checkbox-item").forEach(item => item.addEventListener("click", e => {
+                        if (e.target.type === "checkbox") return;
+                        if (e.target.closest(".dup-keep-btn")) return;
+                        const cb = item.querySelector(".dup-checkbox");
+                        if (cb) { cb.checked = !cb.checked; upd(); }
+                    }));
+                    document.querySelectorAll(".dup-checkbox").forEach(cb => cb.addEventListener("change", upd));
+                    document.getElementById("dupRemoveSelected")?.addEventListener("click", async () => {
+                        const sel = [];
+                        document.querySelectorAll(".dup-checkbox:checked").forEach(cb => {
+                            const i = parseInt(cb.dataset.dupIndex);
+                            if (indexMap[i]) sel.push(indexMap[i]);
+                        });
+                        if (!sel.length) { await Swal.fire("تنبيه", "لم يتم اختيار أي مكرر للحذف", "info"); return; }
+                        const c = await Swal.fire({
+                            title: "تأكيد الحذف", text: `هل أنت متأكد من حذف ${sel.length} مكرر؟`,
+                            icon: "warning", showCancelButton: true,
+                            confirmButtonText: "نعم، حذف", cancelButtonText: "إلغاء", confirmButtonColor: "#e1573c"
+                        });
+                        if (!c.isConfirmed) return;
+                        for (const item of sel) await deleteLoadFromDatabase(item.load.sourceKey, item.load.item);
+                        await Swal.fire("✅ تم الحذف", `تم حذف ${sel.length} مكرر`, "success", { timer: 1400, showConfirmButton: false });
+                        Swal.close();
+                        btnLoadStandard.click();
+                    });
+                    upd();
+                }
             });
         }
 
-        refreshBtn.onclick = refreshSidebar;
-        
-        // App Init
-        refreshSidebar();
-        renderTablePage();
+        /* ============================================================
+           Init
+           ============================================================ */
+        async function init() {
+            await refreshSidebar();
+            renderTablePage();
+            console.log("✅ Loaded — Excel columns and formulas matched");
+        }
+        init();
     </script>
 </body>
 
