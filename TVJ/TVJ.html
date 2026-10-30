@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<title>TVJ Calibration — Infinity Intervals</title>
+<style>
+  :root{
+    --bg:#0f172a; --card:#1e293b; --primary:#3b82f6; --accent:#e74c3c;
+    --success:#22c55e; --warning:#f59e0b; --text:#f8fafc;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family:"Cairo",sans-serif; background:var(--bg); color:var(--text);
+    margin:0; padding:10px; display:flex; flex-direction:column;
+    align-items:center; position:relative;
+  }
+  .home-link{
+    position:absolute; top:15px; right:20px; background:rgba(255,255,255,0.05);
+    padding:8px 16px; border-radius:12px; color:var(--primary);
+    text-decoration:none; font-weight:bold; font-size:0.9rem;
+    border:1px solid rgba(59,130,246,0.3); transition:all 0.3s ease;
+    z-index:100; display:flex; align-items:center; gap:8px;
+  }
+  .home-link:hover{background:var(--primary); color:white;}
+  h1{font-size:1.2rem; text-align:center; margin:45px 0 12px 0; color:var(--primary); text-transform:uppercase;}
+
+  .container{width:100%; max-width:1200px; display:flex; flex-direction:column; gap:15px;}
+  @media (min-width:900px){ .container{flex-direction:row; align-items:stretch;} .panel.config{flex:1;} .panel.live{flex:1.6;} }
+  .panel{
+    background:var(--card); padding:22px; border-radius:20px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.5); width:100%; border:1px solid #334155;
+    display:flex; flex-direction:column;
+  }
+  h2{margin-top:0; font-size:1rem; color:var(--primary); border-bottom:2px solid #334155; padding-bottom:8px; margin-bottom:15px;}
+
+  .mode-tabs{
+    display:flex; gap:6px; margin-bottom:15px; background:#0f172a;
+    padding:5px; border-radius:12px; border:1px solid #334155;
+  }
+  .mode-tab{
+    flex:1; padding:11px 8px; border:none; background:transparent;
+    color:#94a3b8; border-radius:9px; cursor:pointer; font-weight:bold;
+    font-size:0.78rem; font-family:inherit; transition:all 0.2s;
+  }
+  .mode-tab.active{background:var(--primary); color:white;}
+
+  .flex-row{display:flex; flex-wrap:wrap; gap:12px; width:100%;}
+  .input-group{flex:1 1 140px; margin-bottom:12px; min-width:0;}
+  label{display:block; font-size:0.75rem; margin-bottom:6px; color:#94a3b8; font-weight:bold;}
+  label .mini{font-weight:normal; font-size:0.65rem; color:#64748b; display:block; margin-top:2px;}
+  input, select{
+    width:100%; padding:14px; background:#0f172a; border:1px solid #334155;
+    color:white; border-radius:12px; font-size:1rem; outline:none;
+  }
+
+  .btn-container{
+    display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+    gap:15px; margin-top:auto; padding:25px 0 10px 0;
+  }
+  .action-btn{
+    width:clamp(88px,24vw,120px); height:clamp(88px,24vw,120px);
+    border-radius:50%; font-size:clamp(0.7rem,2vw,0.9rem);
+    font-weight:900; cursor:pointer; border:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-transform:uppercase; letter-spacing:0.5px; transition:all 0.2s;
+    box-shadow:0 8px 25px rgba(0,0,0,0.5); padding:0; gap:3px; font-family:inherit;
+  }
+  .action-btn .icon{font-size:clamp(1.5rem,4.5vw,2.3rem); line-height:1;}
+  .action-btn:active{transform:scale(0.9);}
+  .action-btn:disabled{opacity:0.25; filter:grayscale(1); box-shadow:none; cursor:not-allowed;}
+  #startBtn{background:var(--success); color:#fff; border:4px solid rgba(255,255,255,0.18);}
+  #stopBtn {background:var(--accent);  color:#fff; border:4px solid rgba(255,255,255,0.18);}
+  #resetBtn{background:#475569;        color:#fff; border:4px solid rgba(255,255,255,0.10);}
+  #startBtn.begin{animation:beginPulse 1.4s ease-in-out infinite;}
+  @keyframes beginPulse{
+    0%,100%{ box-shadow:0 8px 25px rgba(0,0,0,0.5), 0 0 0 rgba(34,197,94,0); }
+    50%    { box-shadow:0 8px 25px rgba(0,0,0,0.5), 0 0 22px rgba(34,197,94,0.85); }
+  }
+  #stopBtn.pulse{animation:stopPulse 1.6s ease-in-out infinite;}
+  @keyframes stopPulse{
+    0%,100%{ box-shadow:0 8px 25px rgba(0,0,0,0.5), 0 0 0 rgba(231,76,60,0); }
+    50%    { box-shadow:0 8px 25px rgba(0,0,0,0.5), 0 0 22px rgba(231,76,60,0.85); }
+  }
+
+  .cam-stage{
+    position:relative; width:100%; aspect-ratio:4/3; max-height:320px;
+    background:#000; border-radius:16px; overflow:hidden;
+    border:2px solid #334155; margin-bottom:8px;
+    transition:border-color .08s, box-shadow .08s;
+    cursor:crosshair; touch-action:none;
+  }
+  .cam-stage.flash{border-color:var(--success); box-shadow:0 0 25px rgba(34,197,94,.6);}
+  .cam-stage.done{border-color:var(--success); box-shadow:0 0 25px rgba(34,197,94,.5);}
+  .cam-stage video{width:100%; height:100%; object-fit:contain; display:block; background:#000;}
+
+  /* === LED box: BLACK edges + white outline for visibility on any bg === */
+  .led-box{
+    position:absolute;
+    width:30px; height:30px;
+    transform:translate(-50%,-50%);
+    border:2px solid #000;              /* BLACK edges */
+    outline:1px solid rgba(255,255,255,0.7);  /* white halo — visible on dark bg */
+    border-radius:3px;
+    pointer-events:none;
+    box-shadow:
+      0 0 0 9999px rgba(0,0,0,0.28),      /* dims outside, darkens edges area */
+      0 0 12px rgba(0,0,0,0.6);
+    transition:border-color .15s, outline-color .15s,
+               background .06s, box-shadow .15s;
+    display:none;
+  }
+  .led-box.show{display:block;}
+
+  /* Settling (lockout after move/resize) */
+  .led-box.settling{
+    border-color:var(--warning) !important;
+    outline-color:rgba(245,158,11,0.85) !important;
+    border-style:dashed !important;
+  }
+
+  /* Flash indicator */
+  .led-box.flash{
+    background:rgba(34,197,94,.35);
+    border-color:#fff !important;
+    outline-color:rgba(34,197,94,0.95) !important;
+  }
+
+  /* === CROSSHAIR — ONLY visible during alignment (preview) ===
+     Hidden when counting so user can see the LED clearly */
+  .led-box::before,
+  .led-box::after{
+    content:"";
+    position:absolute;
+    left:50%; top:50%;
+    transform:translate(-50%,-50%);
+    background:#ffffff;
+    pointer-events:none;
+    z-index:2;
+    box-shadow:0 0 2px rgba(0,0,0,0.95), 0 0 3px rgba(0,0,0,0.8);
+    opacity:0;                        /* HIDDEN by default */
+    transition:opacity .15s ease;
+  }
+  .led-box::before{ width:14px; height:2px; }   /* horizontal arm */
+  .led-box::after { width:2px; height:14px; }   /* vertical arm */
+
+  /* Show cross ONLY when class "aligning" is present */
+  .led-box.aligning::before,
+  .led-box.aligning::after{
+    opacity:1;
+  }
+
+  .done-overlay{
+    position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.85); font-weight:900; font-size:1.05rem;
+    letter-spacing:0.08em; pointer-events:none; text-align:center; padding:15px;
+    flex-direction:column; gap:8px;
+  }
+  .done-overlay.show{display:flex;}
+  .done-overlay #doneText{font-size:1.3rem;}
+  .done-overlay .big{font-family:"Courier New",monospace; font-size:2.4rem;}
+  .done-overlay .small{font-size:0.72rem; color:#94a3b8; font-weight:normal; letter-spacing:.02em; margin-top:6px;}
+
+  .cam-hud{
+    position:absolute; left:8px; right:8px; bottom:8px;
+    display:flex; align-items:center; gap:9px; padding:7px 11px;
+    background:rgba(15,23,42,0.88); backdrop-filter:blur(6px);
+    border-radius:11px; font-size:0.7rem; color:#94a3b8;
+  }
+  .led{width:13px; height:13px; border-radius:50%; flex:none; background:#334155; transition:background .04s, box-shadow .04s;}
+  .led.on{background:#ef4444; box-shadow:0 0 14px #ef4444;}
+  .mini-bar{flex:1; height:6px; background:#1e293b; border-radius:99px; overflow:hidden;}
+  .mini-bar i{display:block; height:100%; width:0%; background:linear-gradient(90deg,#1f8f5a,#22c55e); border-radius:99px; transition:width .04s linear;}
+
+  .signal{
+    display:flex; gap:12px; align-items:center; flex-wrap:wrap;
+    font-size:0.65rem; color:#94a3b8; font-family:monospace;
+    padding:0 0 8px 0;
+  }
+  .signal b{color:#f8fafc; font-size:0.75rem;}
+  .signal .bad{color:var(--warning) !important;}
+  .signal .good{color:var(--success) !important;}
+
+  .slider-row{
+    display:flex; align-items:center; gap:10px;
+    font-size:0.7rem; color:#94a3b8;
+    padding:4px 0;
+  }
+  .slider-row span{white-space:nowrap; min-width:80px;}
+  .slider-row b{color:#f8fafc; font-family:monospace;}
+  .slider-row input[type="range"]{
+    flex:1; padding:0; height:20px; border:none; background:transparent;
+    accent-color:var(--success); width:100%;
+  }
+
+  .manual-panel{
+    background:#000; border:3px solid #334155; border-radius:16px;
+    min-height:130px; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; margin-bottom:15px;
+    padding:15px; text-align:center;
+  }
+  .manual-timer{
+    font-family:"Courier New",monospace; font-size:clamp(2rem,9vw,3.5rem);
+    font-weight:bold; color:var(--success); line-height:1;
+  }
+  .manual-hint{font-size:0.72rem; color:#94a3b8; margin-top:10px; line-height:1.5; max-width:90%;}
+
+  .meter-box{
+    background:#000; border:3px solid #334155; border-radius:16px;
+    height:130px; display:flex; align-items:center; justify-content:center;
+    position:relative; overflow:hidden; margin-bottom:15px;
+  }
+  .disc-container{width:85%; height:44px; background:#1e293b; border-radius:22px; position:relative; border:2px solid #475569;}
+  .disc-center-line{position:absolute; left:50%; width:4px; height:100%; background:var(--accent); z-index:2;}
+  .center-line-flash{background:#fff !important; box-shadow:0 0 15px #fff;}
+  #disc-mark{
+    position:absolute; top:50%; left:0%; width:14px; height:30px;
+    background:var(--accent); border-radius:3px; transform:translateY(-50%);
+    z-index:3; opacity:0;
+  }
+  #pulse-led{
+    width:50px; height:50px; background:#1a1a1a; border-radius:50%;
+    border:3px solid #333; transition:background .04s, box-shadow .04s;
+  }
+
+  .big-display{
+    font-family:"Courier New",monospace; font-size:clamp(2.3rem,9vw,3.8rem);
+    font-weight:bold; text-align:center; padding:18px 5px; background:#000;
+    color:var(--success); margin-bottom:15px; border-radius:16px;
+    border:1px solid #1e293b; flex-grow:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .status-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px;}
+  .stat{background:#0f172a; padding:12px; border-radius:12px; text-align:center; border:1px solid #334155;}
+  .stat small{display:block; font-size:0.65rem; color:#94a3b8;}
+  .stat span{font-size:1.2rem; font-weight:bold; font-family:monospace;}
+  .stat.wide{grid-column:1/-1; border-color:var(--primary); background:#1e293b;}
+  .stat.wide span{font-size:2rem; color:var(--primary);}
+
+  .export-btn{background:var(--warning); color:#000; padding:12px 24px; border-radius:30px; border:none; cursor:pointer; font-weight:bold;}
+  .log-container{margin-top:20px; width:100%; max-width:1200px;}
+  .table-wrapper{overflow-x:auto; background:var(--card); border-radius:16px;}
+  table{width:100%; min-width:1000px; border-collapse:collapse;}
+  th,td{padding:12px 10px; text-align:left; border-bottom:1px solid #334155; font-size:0.82rem;}
+
+  .cont-badge{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-top:8px; padding:6px 12px;
+    background:linear-gradient(180deg, rgba(34,197,94,0.15), rgba(34,197,94,0.06));
+    border:1px solid rgba(34,197,94,0.4); border-radius:8px;
+    color:var(--success); font-weight:700; font-size:0.7rem;
+    letter-spacing:.5px;
+  }
+
+  #flashCounter{
+    text-align:center; font-family:monospace; font-size:0.85rem;
+    color:#94a3b8; margin-bottom:6px;
+  }
+  #flashCounter b{ color:#f8fafc; font-size:1rem; }
+</style>
+</head>
+<body>
+<a href="Control_Calc.html" class="home-link"><span>🏠</span><span>الصفحة الرئيسية</span></a>
+
+<h1>TVJ CALIBRATION — INFINITY INTERVALS</h1>
+
+<div class="container">
+  <div class="panel config">
+    <h2>Configuration</h2>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="camera">📷 Camera Mode</button>
+      <button class="mode-tab" data-mode="manual">⏱️ Start / Stop</button>
+    </div>
+
+    <div class="input-group">
+      <label>Meter Serial No.</label>
+      <input type="text" id="mno" placeholder="TVJ-XXXX" />
+    </div>
+
+    <div class="flex-row">
+      <div class="input-group">
+        <label>Phases</label>
+        <select id="phases" onchange="handlePhaseChange()">
+          <option value="1">احادى</option>
+          <option value="3">ثلاثي</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>AVG-Voltage (V)</label>
+        <input type="number" id="V" value="220" />
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <div class="input-group">
+        <label>AVG-Current (I)</label>
+        <input type="number" id="I" value="5" />
+      </div>
+      <div class="input-group">
+        <label>AVG-P.F</label>
+        <input type="number" id="pf" value="1" />
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <div class="input-group">
+        <label>Constant (C)</label>
+        <input type="number" id="constant" value="400" />
+      </div>
+      <div class="input-group">
+        <label>Test Revs (n)
+          <span class="mini">Each batch = n+1 flashes = 1 interval</span>
+        </label>
+        <input type="number" id="countInput" value="3" min="1" />
+      </div>
+    </div>
+
+    <div class="flex-row">
+      <div class="input-group">
+        <label>Limit / Class (%)</label>
+        <select id="limit">
+          <option value="0.2">Class 0.2</option>
+          <option value="0.5">Class 0.5</option>
+          <option value="1.0">Class 1.0</option>
+          <option value="2.0" selected>Class 2.0</option>
+          <option value="2.5">Class 2.5</option>
+        </select>
+      </div>
+      <div class="input-group">
+        <label>Meter Type</label>
+        <select id="type" onchange="toggleUI()">
+          <option value="mech">ميكانيكي</option>
+          <option value="digi">رقمي</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-container">
+      <button id="resetBtn" class="action-btn" onclick="resetTest()">
+        <span class="icon">⟲</span><span>RESET</span>
+      </button>
+      <button id="startBtn" class="action-btn" onclick="startTest()">
+        <span class="icon">▶</span><span>START</span>
+      </button>
+      <button id="stopBtn" class="action-btn" onclick="stopTest()" disabled>
+        <span class="icon">⏹</span><span>STOP</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="panel live">
+    <h2>Live Measurement</h2>
+
+    <div id="flashCounter">Total flashes: <b id="totalFlashVal">0</b> · Batches done: <b id="batchDoneVal">0</b></div>
+
+    <div id="pass-counter" style="text-align:center; font-weight:bold; color:var(--primary); margin-bottom:10px; min-height:22px; font-family:monospace; font-size:0.8rem;">
+      READY
+    </div>
+
+    <div id="cameraWrap">
+      <div class="cam-stage" id="camStage">
+        <video id="video" playsinline muted autoplay></video>
+        <div class="led-box" id="ledBox"></div>
+        <div class="done-overlay" id="doneOverlay">
+          <div id="doneText" style="color:#22c55e">✔ PASS</div>
+          <div class="big" id="doneErr">0.000%</div>
+          <div class="small" id="doneInfo">0 batches · 0 flashes</div>
+          <div class="small">Press RESET to run a new test (box preserved)</div>
+        </div>
+        <div class="cam-hud">
+          <span class="led" id="ledDot"></span>
+          <span id="camMsg">Camera off</span>
+          <span class="mini-bar"><i id="brightBar"></i></span>
+        </div>
+      </div>
+
+      <div class="signal">
+        PEAK <b id="sigPeak">0</b>
+        · Δ <b id="sigDelta">0</b>
+        · FPS <b id="sigFps">—</b>
+        · RATE <b id="sigRate">—</b>
+        · PIN <b id="sigPin">—</b>
+      </div>
+
+      <div class="slider-row">
+        <span>Width: <b id="wVal">30</b>px</span>
+        <input type="range" id="widthRange" min="5" max="500" value="30">
+      </div>
+      <div class="slider-row">
+        <span>Height: <b id="hVal">30</b>px</span>
+        <input type="range" id="heightRange" min="5" max="500" value="30">
+      </div>
+      <div class="cont-badge">
+        ♾️ INFINITY · each batch = 1 interval · continues until STOP
+      </div>
+    </div>
+
+    <div id="manualWrap" style="display:none">
+      <div class="manual-panel">
+        <div class="manual-timer" id="manualTimer">0.00s</div>
+        <div class="manual-hint">
+          Press <b>START</b> at flash&nbsp;1.<br/>
+          Press <b>STOP</b> at flash&nbsp;<span id="manualTarget">4</span>.
+        </div>
+      </div>
+    </div>
+
+    <div class="meter-box" id="mech-ui">
+      <div class="disc-container">
+        <div class="disc-center-line"></div>
+        <div id="disc-mark"></div>
+      </div>
+    </div>
+    <div class="meter-box" id="digi-ui" style="display:none">
+      <div id="pulse-led"></div>
+    </div>
+
+    <div class="big-display" id="live-error-display">---</div>
+
+    <div class="status-grid">
+      <div class="stat"><small>POWER (W)</small><span id="live-p">0.0</span></div>
+      <div class="stat"><small>ENERGY (Wh)</small><span id="live-e">0.0000</span></div>
+      <div class="stat wide"><small>CHRONOMETER</small><span id="timer">0.00s</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="log-container panel">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+    <h2 style="margin:0;">Interval Log</h2>
+    <button class="export-btn" onclick="exportToExcel()">EXPORT CSV</button>
+  </div>
+  <div class="table-wrapper">
+    <table id="logTable">
+      <thead>
+        <tr>
+          <th>Serial No</th><th>Batch</th><th>Connection</th><th>Type</th>
+          <th>Error %</th><th>Constant</th><th>Class</th><th>Current</th>
+          <th>Flashes</th><th>Duration</th><th>Result</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+const SCAN_W = 128, SCAN_H = 96;
+const PIXEL_JUMP = 30;
+const MIN_GAP_MS = 80;
+const AE_LOCK_MS = 800;
+const LOCKOUT_MS = 500;
+const FREEZE_RESULT_MS = 400;
+
+const video     = $("video");
+const camStage  = $("camStage");
+const ledBox    = $("ledBox");
+const ledDot    = $("ledDot");
+const camMsg    = $("camMsg");
+const brightBar = $("brightBar");
+const manualTimer  = $("manualTimer");
+const manualTarget = $("manualTarget");
+const sigPeak   = $("sigPeak");
+const sigDelta  = $("sigDelta");
+const sigFps    = $("sigFps");
+const sigRate   = $("sigRate");
+const sigPin    = $("sigPin");
+const doneOverlay = $("doneOverlay");
+const doneText    = $("doneText");
+const doneErr     = $("doneErr");
+const doneInfo    = $("doneInfo");
+const totalFlashVal = $("totalFlashVal");
+const batchDoneVal  = $("batchDoneVal");
+
+const scanCanvas = document.createElement("canvas");
+scanCanvas.width = SCAN_W;
+scanCanvas.height = SCAN_H;
+const scanCtx = scanCanvas.getContext("2d", {willReadFrequently: true});
+
+let camOn = false, stream = null;
+let rafId = 0, rvfcId = null;
+const useRVFC = typeof HTMLVideoElement !== "undefined" &&
+                typeof HTMLVideoElement.prototype.requestVideoFrameCallback === "function";
+
+let isPinned = false;
+let ledX = 0.5, ledY = 0.5;
+let boxWidthPx = 30, boxHeightPx = 30;
+
+let lockoutUntil = 0;
+let prevFrameData = null;
+let pulseState = false;
+let lastCount = 0;
+let lastUi = 0;
+let fpsCount = 0, fpsTimer = 0, fpsValue = 0;
+let recentRiseTimes = [];
+
+let batchFlashes = 0;
+let batchFirstT = 0;
+let totalFlashes = 0;
+let currentBatchError = null;
+let lastBatchError = null;
+let batchResults = [];
+let displayFreezeUntil = 0;
+
+let currentMode = "camera";
+let testState = "idle";
+let cfg = null;
+let measuredMs = 0;
+let manualTimerInt = null;
+let manualFirstT = 0;
+
+function applyButtons(){
+  const counting = (testState === "waiting" || testState === "running" || testState === "manual-running");
+  const starting = (testState === "starting");
+  const done     = (testState === "done");
+  $("startBtn").disabled = counting || starting || done;
+  $("stopBtn").disabled  = !counting;
+  $("resetBtn").disabled = false;
+  $("startBtn").classList.toggle("begin", testState === "preview" && isPinned);
+  $("stopBtn").classList.toggle("pulse", testState === "running" || testState === "manual-running");
+
+  /* CROSSHAIR: only visible while user is adjusting the box (preview) */
+  const aligning = (testState === "preview" && camOn);
+  ledBox.classList.toggle("aligning", aligning);
+}
+
+let actx = null;
+function ensureAudio(){
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+  } catch(e) {}
+}
+function beep(freq){
+  if (!actx) return;
+  const f = freq || 1000;
+  const t = actx.currentTime;
+  const o = actx.createOscillator(), g = actx.createGain();
+  o.type = "sine"; o.frequency.setValueAtTime(f, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.13, t + 0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  o.connect(g).connect(actx.destination);
+  o.start(t); o.stop(t + 0.09);
+}
+function vibrate(ms){ if (navigator.vibrate) navigator.vibrate(ms || 25); }
+
+function handlePhaseChange(){ $("V").value = "220"; }
+function toggleUI(){
+  const type = $("type").value;
+  $("mech-ui").style.display = type === "mech" ? "flex" : "none";
+  $("digi-ui").style.display = type === "digi" ? "flex" : "none";
+}
+
+function armLockout(){
+  lockoutUntil = performance.now() + LOCKOUT_MS;
+  prevFrameData = null;
+  pulseState = false;
+  lastCount = 0;
+  recentRiseTimes = [];
+}
+
+document.querySelectorAll(".mode-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const mode = btn.dataset.mode;
+    if (mode === currentMode) return;
+    if (testState !== "idle" && testState !== "done"){
+      if (!confirm("Switching mode will reset the current test. Continue?")) return;
+    }
+    resetTest();
+    currentMode = mode;
+    document.querySelectorAll(".mode-tab").forEach(b =>
+      b.classList.toggle("active", b.dataset.mode === mode));
+    $("cameraWrap").style.display = mode === "camera" ? "block" : "none";
+    $("manualWrap").style.display = mode === "manual" ? "block" : "none";
+  });
+});
+
+/* ========== CAMERA ========== */
+async function startCamera(){
+  if (camOn) return true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    camMsg.textContent = "Camera unsupported (need https/localhost)";
+    return false;
+  }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode:"environment",
+               width: { ideal: 1280 }, height: { ideal: 720 },
+               frameRate: { ideal: 60, min: 30 } },
+      audio: false
+    });
+    if (testState !== "preview"){
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      return false;
+    }
+    video.srcObject = stream;
+    await video.play();
+    if (testState !== "preview"){
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      video.srcObject = null;
+      return false;
+    }
+
+    prevFrameData = null;
+    pulseState = false;
+    lastCount = 0;
+    recentRiseTimes = [];
+    fpsCount = 0; fpsTimer = performance.now(); fpsValue = 0;
+    lockoutUntil = 0;
+
+    ledBox.classList.remove("flash", "settling");
+    ledBox.classList.add("show");
+    ledBox.style.width  = boxWidthPx + "px";
+    ledBox.style.height = boxHeightPx + "px";
+
+    camOn = true;
+    camStage.classList.remove("done", "flash");
+    doneOverlay.classList.remove("show");
+    camMsg.textContent = isPinned
+      ? "Box preserved — press START to begin"
+      : "Adjust box, then press START";
+
+    requestAnimationFrame(() => { if (camOn) positionBox(); });
+    applyButtons();
+    scheduleFrame();
+
+    setTimeout(() => {
+      if (!camOn || !stream) return;
+      const track = stream.getVideoTracks()[0];
+      try {
+        const caps = track.getCapabilities ? track.getCapabilities() : {};
+        const adv = [];
+        if (caps.exposureMode && caps.exposureMode.includes("manual"))
+          adv.push({ exposureMode: "manual" });
+        if (caps.whiteBalanceMode && caps.whiteBalanceMode.includes("manual"))
+          adv.push({ whiteBalanceMode: "manual" });
+        if (caps.focusMode && caps.focusMode.includes("manual"))
+          adv.push({ focusMode: "manual" });
+        if (adv.length) track.applyConstraints({ advanced: adv }).catch(()=>{});
+      } catch(e) {}
+    }, AE_LOCK_MS);
+
+    return true;
+  } catch(e){
+    camMsg.textContent = "Camera error: " + (e.message || e);
+    return false;
+  }
+}
+
+function stopCamera(){
+  camOn = false;
+  cancelSchedule();
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  ledDot.classList.remove("on");
+  ledBox.classList.remove("show", "flash", "settling", "aligning");
+  camMsg.textContent = "Camera off";
+  brightBar.style.width = "0%";
+  sigRate.textContent = "—";
+  sigPin.textContent = "—";
+  sigPin.className = "";
+  sigPeak.textContent = "0";
+  sigDelta.textContent = "0";
+  sigFps.textContent = "—";
+}
+
+function scheduleFrame(){
+  if (!camOn) return;
+  if (useRVFC) rvfcId = video.requestVideoFrameCallback(onFrame);
+  else         rafId  = requestAnimationFrame(onFrame);
+}
+function cancelSchedule(){
+  if (rvfcId != null && video.cancelVideoFrameCallback){
+    try { video.cancelVideoFrameCallback(rvfcId); } catch(e) {}
+    rvfcId = null;
+  }
+  if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+}
+
+/* ============================================================
+   FRAME PROCESSING — detection unchanged
+   ============================================================ */
+function onFrame(now){
+  if (!camOn) return;
+  scheduleFrame();
+  if (video.readyState < 2 || !video.videoWidth) return;
+
+  const vw = video.videoWidth, vh = video.videoHeight;
+
+  scanCtx.drawImage(video, 0, 0, SCAN_W, SCAN_H);
+  const imgData = scanCtx.getImageData(0, 0, SCAN_W, SCAN_H);
+  const d = imgData.data;
+
+  let peak = 0, maxDelta = 0;
+
+  if (isPinned && prevFrameData){
+    const cw = camStage.clientWidth, ch = camStage.clientHeight;
+    const scale = Math.min(cw / vw, ch / vh);
+    const boxVidW = boxWidthPx / scale;
+    const boxVidH = boxHeightPx / scale;
+    const boxScanW = (boxVidW / vw) * SCAN_W;
+    const boxScanH = (boxVidH / vh) * SCAN_H;
+
+    const cx = Math.round(ledX * SCAN_W);
+    const cy = Math.round(ledY * SCAN_H);
+    const halfW = Math.max(1, Math.round(boxScanW / 2));
+    const halfH = Math.max(1, Math.round(boxScanH / 2));
+
+    const x0 = Math.max(0, cx - halfW);
+    const x1 = Math.min(SCAN_W - 1, cx + halfW);
+    const y0 = Math.max(0, cy - halfH);
+    const y1 = Math.min(SCAN_H - 1, cy + halfH);
+
+    for (let y = y0; y <= y1; y++){
+      for (let x = x0; x <= x1; x++){
+        const idx = (y * SCAN_W + x) * 4;
+        const currB = Math.max(d[idx], d[idx+1], d[idx+2]);
+        const prevB = Math.max(prevFrameData[idx], prevFrameData[idx+1], prevFrameData[idx+2]);
+        if (currB > peak) peak = currB;
+        const delta = currB - prevB;
+        if (delta > maxDelta) maxDelta = delta;
+      }
+    }
+
+    const detecting = (testState === "waiting" || testState === "running")
+                       && now > lockoutUntil;
+
+    if (detecting){
+      if (!pulseState){
+        if (maxDelta >= PIXEL_JUMP && (now - lastCount) > MIN_GAP_MS){
+          lastCount = now;
+          pulseState = true;
+          onFlash(now);
+        }
+      } else {
+        if (maxDelta < (PIXEL_JUMP / 2.5)){
+          pulseState = false;
+        }
+      }
+    } else {
+      pulseState = false;
+    }
+  }
+
+  fpsCount++;
+  if (now - fpsTimer >= 1000){ fpsValue = fpsCount; fpsCount = 0; fpsTimer = now; }
+
+  if (now - lastUi > 60){
+    lastUi = now;
+    sigPeak.textContent = peak;
+    sigDelta.textContent = maxDelta;
+    sigDelta.className = maxDelta >= PIXEL_JUMP ? "good" : "";
+    sigFps.textContent = fpsValue || "—";
+    sigFps.classList.toggle("bad", fpsValue > 0 && fpsValue < 25);
+
+    if (isPinned){
+      sigPin.textContent = "PINNED";
+      sigPin.className = "good";
+    } else {
+      sigPin.textContent = "TAP TO PIN";
+      sigPin.className = "bad";
+    }
+
+    if (recentRiseTimes.length >= 2){
+      const span = recentRiseTimes[recentRiseTimes.length - 1] - recentRiseTimes[0];
+      const hz = (recentRiseTimes.length - 1) * 1000 / span;
+      sigRate.textContent = hz.toFixed(2) + " Hz";
+    } else {
+      sigRate.textContent = "—";
+    }
+
+    brightBar.style.width = Math.min(100, peak / 255 * 100) + "%";
+    ledBox.classList.toggle("settling", isPinned && now < lockoutUntil);
+
+    if (isPinned && now < lockoutUntil){
+      camMsg.textContent = "Settling… detection paused";
+    } else if (testState === "preview"){
+      camMsg.textContent = isPinned
+        ? "Box preserved — press START to begin"
+        : "Tap on the LED to pin the box";
+    } else if (testState === "waiting"){
+      camMsg.textContent = "Waiting for flash 1…";
+    } else if (testState === "running"){
+      camMsg.textContent = `Running · ${totalFlashes} flashes · ${batchResults.length} batches done`;
+    } else if (testState === "done"){
+      camMsg.textContent = "Complete — press RESET";
+    }
+
+    updateLiveDisplay(now);
+    updateDisplayError(now);
+    applyButtons();
+  }
+
+  prevFrameData = new Uint8ClampedArray(d);
+}
+
+function positionBox(){
+  if (!camOn || !video.videoWidth) return;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const cw = camStage.clientWidth, ch = camStage.clientHeight;
+  if (!vw || !vh || !cw || !ch) return;
+
+  const scale = Math.min(cw / vw, ch / vh);
+  const renderW = vw * scale;
+  const renderH = vh * scale;
+  const offsetX = (cw - renderW) / 2;
+  const offsetY = (ch - renderH) / 2;
+
+  const screenX = offsetX + ledX * renderW;
+  const screenY = offsetY + ledY * renderH;
+
+  ledBox.style.left = screenX + "px";
+  ledBox.style.top  = screenY + "px";
+  ledBox.style.width  = boxWidthPx + "px";
+  ledBox.style.height = boxHeightPx + "px";
+}
+
+function handleStageTap(clientX, clientY){
+  if (!camOn) return;
+  if (testState === "waiting" || testState === "running" || testState === "done") return;
+
+  const rect = camStage.getBoundingClientRect();
+  const cw = camStage.clientWidth, ch = camStage.clientHeight;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!cw || !ch || !vw || !vh) return;
+
+  const scale = Math.min(cw / vw, ch / vh);
+  const renderW = vw * scale;
+  const renderH = vh * scale;
+  const offsetX = (cw - renderW) / 2;
+  const offsetY = (ch - renderH) / 2;
+
+  const clickX = clientX - rect.left;
+  const clickY = clientY - rect.top;
+
+  const vidX = clickX - offsetX;
+  const vidY = clickY - offsetY;
+
+  if (vidX >= 0 && vidX <= renderW && vidY >= 0 && vidY <= renderH){
+    ledX = vidX / renderW;
+    ledY = vidY / renderH;
+    isPinned = true;
+    ledBox.classList.add("show");
+    armLockout();
+    positionBox();
+    applyButtons();
+  }
+}
+
+camStage.addEventListener("click", e => handleStageTap(e.clientX, e.clientY));
+camStage.addEventListener("pointerdown", e => handleStageTap(e.clientX, e.clientY));
+
+/* ============================================================
+   FLASH HANDLER
+   ============================================================ */
+function onFlash(riseT){
+  if (testState !== "waiting" && testState !== "running") return;
+
+  if (testState === "waiting"){
+    testState = "running";
+  }
+
+  ledDot.classList.add("on");
+  ledBox.classList.add("flash");
+  camStage.classList.add("flash");
+  setTimeout(() => {
+    ledBox.classList.remove("flash");
+    camStage.classList.remove("flash");
+  }, 90);
+  setTimeout(() => ledDot.classList.remove("on"), 110);
+
+  recentRiseTimes.push(riseT);
+  if (recentRiseTimes.length > 8) recentRiseTimes.shift();
+
+  totalFlashes++;
+  totalFlashVal.textContent = totalFlashes;
+  batchDoneVal.textContent = batchResults.length;
+
+  beep(1000); vibrate(25);
+
+  if (batchFlashes === 0){
+    batchFlashes = 1;
+    batchFirstT = riseT;
+    currentBatchError = null;
+  } else {
+    batchFlashes++;
+    const intervals = batchFlashes - 1;
+    const ms = riseT - batchFirstT;
+    currentBatchError = computeErrorValue(intervals, ms);
+
+    if (batchFlashes >= cfg.n + 1){
+      const finalError = currentBatchError;
+      const batchNum = batchResults.length + 1;
+
+      batchResults.push({
+        batchNum: batchNum,
+        errorPct: finalError,
+        flashes: batchFlashes,
+        intervals: cfg.n,
+        ms: ms
+      });
+
+      logBatchResult(batchNum, finalError, batchFlashes, cfg.n, ms);
+
+      beep(1400); vibrate([30, 20, 30]);
+      batchDoneVal.textContent = batchResults.length;
+
+      lastBatchError = finalError;
+      displayFreezeUntil = riseT + FREEZE_RESULT_MS;
+      currentBatchError = null;
+      batchFlashes = 0;
+      batchFirstT = 0;
+      measuredMs = ms;
+    }
+  }
+
+  updateProgressDisplay();
+  updateDisplayError(riseT);
+}
+
+function computeErrorValue(intervals, ms){
+  const E_meter = (intervals * 1000) / cfg.C;
+  const E_true  = (cfg.power * ms) / 3600000;
+  return E_meter > 0 ? ((E_meter - E_true) / E_meter) * 100 : 0;
+}
+
+function updateDisplayError(now){
+  const el = $("live-error-display");
+  if (!cfg){ el.textContent = "---"; el.style.color = "#f8fafc"; return; }
+
+  if (now < displayFreezeUntil && lastBatchError !== null){
+    el.textContent = lastBatchError.toFixed(3) + "%";
+    el.style.color = Math.abs(lastBatchError) <= cfg.limit ? "#22c55e" : "#ef4444";
+    return;
+  }
+
+  if (currentBatchError !== null && batchFlashes >= 2){
+    el.textContent = currentBatchError.toFixed(3) + "%";
+    el.style.color = "#f8fafc";
+    return;
+  }
+
+  el.textContent = "---";
+  el.style.color = "#f8fafc";
+}
+
+function updateProgressDisplay(){
+  if (!cfg) return;
+  const el = $("pass-counter");
+  if (testState === "waiting"){
+    el.textContent = `Waiting for flash 1 (${cfg.n+1} flashes/batch)…`;
+    el.style.color = "var(--primary)";
+    return;
+  }
+  if (testState !== "running") return;
+
+  const batchNum = batchResults.length + 1;
+  const batchSize = cfg.n + 1;
+
+  let progressTxt;
+  if (batchFlashes === 0){
+    progressTxt = `B${batchResults.length} done · waiting B${batchNum}`;
+  } else {
+    progressTxt = `B${batchNum} · ${batchFlashes}/${batchSize}`;
+  }
+
+  let avgTxt = "—";
+  let color = "var(--primary)";
+  if (batchResults.length > 0){
+    const avg = batchResults.reduce((s, r) => s + r.errorPct, 0) / batchResults.length;
+    avgTxt = avg.toFixed(3) + "%";
+    color = Math.abs(avg) <= cfg.limit ? "#22c55e" : "#ef4444";
+  }
+
+  el.textContent = `${progressTxt} · avg ${avgTxt} · ${totalFlashes} total`;
+  el.style.color = color;
+}
+
+function updateLiveDisplay(now){
+  if (!cfg) return;
+  if (testState === "running"){
+    const lastMs = batchResults.length > 0
+      ? batchResults[batchResults.length - 1].ms
+      : (batchFirstT ? now - batchFirstT : 0);
+    $("timer").textContent  = (lastMs/1000).toFixed(2) + "s";
+    $("live-e").textContent = ((cfg.power*lastMs)/3600000).toFixed(4);
+    $("live-p").textContent = cfg.power.toFixed(1);
+  } else if (testState === "done"){
+    $("timer").textContent  = (measuredMs/1000).toFixed(2) + "s";
+    $("live-e").textContent = ((cfg.power*measuredMs)/3600000).toFixed(4);
+    $("live-p").textContent = cfg.power.toFixed(1);
+  }
+}
+
+function logBatchResult(batchNum, errorPct, flashes, intervals, ms){
+  if (!cfg) return;
+  const mno = $("mno").value || "TVJ-LAB";
+  const connection = $("phases").selectedOptions[0].text;
+  const type = $("type").selectedOptions[0].text;
+  const errStr = errorPct.toFixed(3) + "%";
+  const isPass = Math.abs(errorPct) <= cfg.limit;
+
+  const row = document.querySelector("#logTable tbody").insertRow(0);
+  row.innerHTML = `
+    <td>${mno}</td>
+    <td style="font-weight:bold; color:#3b82f6">B${batchNum}</td>
+    <td>${connection}</td>
+    <td>${type}</td>
+    <td style="color:${isPass ? "#22c55e" : "#ef4444"}; font-weight:bold">${errStr}</td>
+    <td>${cfg.C}</td>
+    <td>${cfg.limit}%</td>
+    <td>${cfg.I}A</td>
+    <td>${flashes} (${intervals}iv)</td>
+    <td>${(ms/1000).toFixed(2)}s</td>
+    <td style="font-weight:bold; color:${isPass ? "#22c55e" : "#ef4444"}">${isPass ? "PASS" : "FAIL"}</td>
+    <td><button onclick="this.parentElement.parentElement.remove()" style="padding:6px; background:#475569; border:none; color:white; border-radius:8px;">DEL</button></td>`;
+}
+
+/* ========== FINALIZE ========== */
+function finalizeResult(){
+  let avgError = null;
+  let flashes = 0;
+  let batches = 0;
+
+  if (batchResults.length > 0){
+    avgError = batchResults.reduce((s, r) => s + r.errorPct, 0) / batchResults.length;
+    flashes  = batchResults.reduce((s, r) => s + r.flashes, 0);
+    batches  = batchResults.length;
+  } else if (batchFlashes >= 2 && currentBatchError !== null){
+    avgError = currentBatchError;
+    flashes  = batchFlashes;
+    batches  = 0;
+  }
+
+  if (avgError === null){
+    testState = "preview";
+    clearBatchState();
+    prevFrameData = null; pulseState = false;
+    lastCount = 0; recentRiseTimes = [];
+    ledBox.classList.add("show");
+    ledBox.classList.remove("flash", "settling");
+    armLockout();
+
+    $("pass-counter").textContent = "Not enough flashes — try again";
+    $("pass-counter").style.color = "var(--warning)";
+    $("live-error-display").textContent = "---";
+    $("live-error-display").style.color = "#f8fafc";
+    $("timer").textContent = "0.00s";
+    $("live-p").textContent = "0.0";
+    $("live-e").textContent = "0.0000";
+    applyButtons();
+    return;
+  }
+
+  testState = "done";
+  const isPass = Math.abs(avgError) <= cfg.limit;
+  const color = isPass ? "#22c55e" : "#ef4444";
+
+  $("live-error-display").textContent = avgError.toFixed(3) + "%";
+  $("live-error-display").style.color = color;
+
+  $("pass-counter").textContent =
+    `${isPass ? "✔ PASS" : "✘ FAIL"} · AVG ${avgError.toFixed(3)}% · ${batches} batches · ${flashes} flashes`;
+  $("pass-counter").style.color = color;
+
+  doneText.textContent = isPass ? "✔ PASS" : "✘ FAIL";
+  doneText.style.color = color;
+  doneErr.textContent  = avgError.toFixed(3) + "%";
+  doneErr.style.color  = color;
+  doneInfo.textContent = `${batches} batches · ${flashes} flashes`;
+  doneOverlay.classList.add("show");
+
+  if (batches > 0) logSummaryRow(avgError, batches, flashes);
+
+  stopCamera();
+  camStage.classList.add("done");
+  camMsg.textContent = "Complete — press RESET";
+
+  beep(1400); setTimeout(()=>beep(1600), 120); vibrate([60,40,60]);
+
+  applyButtons();
+}
+
+function logSummaryRow(avgError, batches, flashes){
+  if (!cfg) return;
+  const mno = $("mno").value || "TVJ-LAB";
+  const isPass = Math.abs(avgError) <= cfg.limit;
+  const errStr = avgError.toFixed(3) + "%";
+
+  const row = document.querySelector("#logTable tbody").insertRow(0);
+  row.style.background = "rgba(59,130,246,0.1)";
+  row.innerHTML = `
+    <td>${mno}</td>
+    <td style="font-weight:900; color:#f59e0b">AVG</td>
+    <td colspan="2" style="color:#94a3b8; font-size:0.75rem">${batches} batches</td>
+    <td style="color:${isPass ? "#22c55e" : "#ef4444"}; font-weight:900">${errStr}</td>
+    <td>${cfg.C}</td>
+    <td>${cfg.limit}%</td>
+    <td>${cfg.I}A</td>
+    <td>${flashes} total</td>
+    <td>—</td>
+    <td style="font-weight:bold; color:${isPass ? "#22c55e" : "#ef4444"}">${isPass ? "PASS" : "FAIL"}</td>
+    <td><button onclick="this.parentElement.parentElement.remove()" style="padding:6px; background:#475569; border:none; color:white; border-radius:8px;">DEL</button></td>`;
+}
+
+function flashIndicators(){
+  const led = $("pulse-led");
+  led.style.background = "#22c55e";
+  led.style.boxShadow = "0 0 20px #22c55e";
+  setTimeout(() => { led.style.background = "#1a1a1a"; led.style.boxShadow = "none"; }, 110);
+
+  const mark = $("disc-mark");
+  mark.style.transition = "none";
+  mark.style.left = "0%";
+  mark.style.opacity = "1";
+  requestAnimationFrame(() => {
+    mark.style.transition = "left .30s linear";
+    mark.style.left = "100%";
+  });
+  setTimeout(() => { mark.style.opacity = "0"; }, 330);
+
+  const line = document.querySelector(".disc-center-line");
+  if (line){
+    line.classList.add("center-line-flash");
+    setTimeout(() => line.classList.remove("center-line-flash"), 130);
+  }
+}
+
+/* ========== START / STOP / RESET ========== */
+function snapshotConfig(){
+  const V = +$("V").value, I = +$("I").value, pf = +$("pf").value;
+  const phases = +$("phases").value;
+  const C = +$("constant").value;
+  const n = Math.max(1, Math.round(+$("countInput").value));
+  const limit = +$("limit").value;
+  const power = phases === 3 ? 3*V*I*pf : V*I*pf;
+  return { V, I, pf, phases, C, n, limit, power };
+}
+
+function clearBatchState(){
+  batchFlashes = 0;
+  batchFirstT = 0;
+  totalFlashes = 0;
+  currentBatchError = null;
+  lastBatchError = null;
+  batchResults = [];
+  displayFreezeUntil = 0;
+  measuredMs = 0;
+  totalFlashVal.textContent = "0";
+  batchDoneVal.textContent = "0";
+}
+
+async function startTest(){
+  if (testState === "starting" || testState === "waiting" ||
+      testState === "running"  || testState === "manual-running" ||
+      testState === "done") return;
+
+  if (currentMode === "manual"){
+    ensureAudio();
+    cfg = snapshotConfig();
+    clearBatchState();
+    testState = "manual-running";
+    applyButtons();
+    manualFirstT = performance.now();
+    manualTarget.textContent = String(cfg.n + 1);
+    $("pass-counter").textContent = `TIMING… press STOP when flash ${cfg.n+1} arrives`;
+    $("pass-counter").style.color = "var(--primary)";
+    $("manualTimer").textContent = "0.00s";
+    $("timer").textContent = "0.00s";
+    startManualTimer();
+    return;
+  }
+
+  if (testState === "preview"){
+    if (!isPinned){
+      camMsg.textContent = "Tap the LED first to pin the box";
+      return;
+    }
+    ensureAudio();
+    cfg = snapshotConfig();
+    clearBatchState();
+    prevFrameData = null; pulseState = false;
+    lastCount = 0; recentRiseTimes = [];
+    armLockout();
+
+    testState = "waiting";
+    applyButtons();
+    $("pass-counter").textContent = `Waiting for flash 1 (${cfg.n+1} flashes/batch)…`;
+    $("pass-counter").style.color = "var(--primary)";
+    $("live-error-display").textContent = "---";
+    $("live-error-display").style.color = "#f8fafc";
+    $("timer").textContent = "0.00s";
+    $("live-p").textContent = cfg.power.toFixed(1);
+    $("live-e").textContent = "0.0000";
+    camStage.classList.remove("done", "flash");
+    doneOverlay.classList.remove("show");
+    return;
+  }
+
+  testState = "starting";
+  applyButtons();
+
+  cfg = null;
+  clearBatchState();
+  prevFrameData = null; pulseState = false;
+  lastCount = 0; recentRiseTimes = [];
+  lockoutUntil = 0;
+
+  camStage.classList.remove("done", "flash");
+  doneOverlay.classList.remove("show");
+  $("live-error-display").textContent = "---";
+  $("live-error-display").style.color = "#f8fafc";
+  $("timer").textContent = "0.00s";
+  $("live-p").textContent = "0.0";
+  $("live-e").textContent = "0.0000";
+  $("pass-counter").textContent = isPinned
+    ? "Opening camera — box preserved"
+    : "Opening camera — adjust box, then press START";
+  $("pass-counter").style.color = "var(--primary)";
+
+  testState = "preview";
+  const ok = await startCamera();
+  if (!ok){
+    testState = "idle";
+    applyButtons();
+    return;
+  }
+  $("pass-counter").textContent = isPinned
+    ? "Box preserved — press START for infinite intervals"
+    : "Tap LED to pin the box, then press START";
+}
+
+function startManualTimer(){
+  clearInterval(manualTimerInt);
+  manualTimerInt = setInterval(() => {
+    if (testState !== "manual-running"){
+      clearInterval(manualTimerInt); manualTimerInt = null; return;
+    }
+    const el = performance.now() - manualFirstT;
+    const s = (el/1000).toFixed(2) + "s";
+    manualTimer.textContent = s;
+    $("timer").textContent = s;
+    $("live-e").textContent = ((cfg.power*el)/3600000).toFixed(4);
+  }, 40);
+}
+
+function stopTest(){
+  if (testState === "manual-running"){
+    finishManual();
+    return;
+  }
+
+  if (testState === "running"){
+    finalizeResult();
+    return;
+  }
+
+  if (testState === "waiting"){
+    if (batchResults.length > 0){
+      finalizeResult();
+      return;
+    }
+    testState = "preview";
+    clearBatchState();
+    prevFrameData = null; pulseState = false;
+    lastCount = 0; recentRiseTimes = [];
+    cfg = null;
+    ledBox.classList.add("show");
+    ledBox.classList.remove("flash", "settling");
+    armLockout();
+
+    $("pass-counter").textContent = "Adjust box, then press START";
+    $("pass-counter").style.color = "var(--primary)";
+    $("live-error-display").textContent = "---";
+    $("live-error-display").style.color = "#f8fafc";
+    $("timer").textContent = "0.00s";
+    $("live-p").textContent = "0.0";
+    $("live-e").textContent = "0.0000";
+    camMsg.textContent = "Adjust box, then press START";
+    applyButtons();
+    return;
+  }
+
+  stopCamera();
+  resetToIdle();
+}
+
+function finishManual(){
+  const tLast = performance.now();
+  const ms = tLast - manualFirstT;
+  clearInterval(manualTimerInt); manualTimerInt = null;
+
+  const errorPct = computeErrorValue(cfg.n, ms);
+
+  batchResults.push({
+    batchNum: 1,
+    errorPct: errorPct,
+    flashes: cfg.n + 1,
+    intervals: cfg.n,
+    ms: ms
+  });
+
+  measuredMs = ms;
+  manualTimer.textContent = (ms/1000).toFixed(2) + "s";
+  $("timer").textContent = (ms/1000).toFixed(2) + "s";
+  $("live-e").textContent = ((cfg.power*ms)/3600000).toFixed(4);
+
+  logBatchResult(1, errorPct, cfg.n + 1, cfg.n, ms);
+  finalizeResult();
+}
+
+function resetTest(){
+  clearInterval(manualTimerInt); manualTimerInt = null;
+  stopCamera();
+  resetToIdle();
+}
+
+function resetToIdle(){
+  testState = "idle";
+  cfg = null;
+  clearBatchState();
+  prevFrameData = null; pulseState = false;
+  lastCount = 0; recentRiseTimes = [];
+  lockoutUntil = 0;
+
+  $("pass-counter").textContent = isPinned
+    ? "READY — press START (box preserved)"
+    : "READY — press START to open camera";
+  $("pass-counter").style.color = "var(--primary)";
+  $("live-error-display").textContent = "---";
+  $("live-error-display").style.color = "#f8fafc";
+  $("timer").textContent = "0.00s";
+  $("live-p").textContent = "0.0";
+  $("live-e").textContent = "0.0000";
+  $("manualTimer").textContent = "0.00s";
+  manualTarget.textContent = String(Math.max(1, Math.round(+$("countInput").value)) + 1);
+
+  $("disc-mark").style.opacity = "0";
+  $("pulse-led").style.background = "#1a1a1a";
+  $("pulse-led").style.boxShadow = "none";
+  ledDot.classList.remove("on");
+  ledBox.classList.remove("show", "flash", "settling", "aligning");
+  doneOverlay.classList.remove("show");
+  camStage.classList.remove("done", "flash");
+  camMsg.textContent = "Camera off";
+
+  applyButtons();
+}
+
+function exportToExcel(){
+  let csv = [];
+  const rows = document.querySelectorAll("table tr");
+  for (let i = 0; i < rows.length; i++){
+    let row = [], cols = rows[i].querySelectorAll("td, th");
+    for (let j = 0; j < cols.length - 1; j++) row.push('"' + cols[j].innerText.trim() + '"');
+    csv.push(row.join(","));
+  }
+  const csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.download = "Calibration_Log.csv";
+  link.href = window.URL.createObjectURL(csvFile);
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+}
+
+$("widthRange").addEventListener("input", e => {
+  if (testState === "waiting" || testState === "running") return;
+  boxWidthPx = parseInt(e.target.value);
+  $("wVal").textContent = boxWidthPx;
+  if (camOn) positionBox();
+  armLockout();
+});
+$("heightRange").addEventListener("input", e => {
+  if (testState === "waiting" || testState === "running") return;
+  boxHeightPx = parseInt(e.target.value);
+  $("hVal").textContent = boxHeightPx;
+  if (camOn) positionBox();
+  armLockout();
+});
+
+$("countInput").addEventListener("input", e => {
+  if (testState === "idle"){
+    manualTarget.textContent = String(Math.max(1, Math.round(+e.target.value)) + 1);
+  }
+});
+
+window.addEventListener("resize", positionBox);
+window.addEventListener("pagehide", () => { stopCamera(); clearInterval(manualTimerInt); });
+
+toggleUI();
+resetToIdle();
+</script>
+</body>
+</html>

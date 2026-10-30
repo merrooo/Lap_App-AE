@@ -1,0 +1,311 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>Long-Distance LED Counter</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,sans-serif;background:#0a0e17;color:#e8eef7;
+       margin:0;padding:12px;max-width:600px;margin:0 auto;
+       display:flex;flex-direction:column;gap:12px}
+  h1{font-size:1rem;margin:0;color:#3b82f6;text-align:center}
+  .hint{font-size:.72rem;color:#94a3b8;text-align:center;margin:0}
+  .hint b{color:#22c55e}
+
+  .stage{position:relative;width:100%;aspect-ratio:4/3;
+         background:#000;border-radius:12px;overflow:hidden;
+         border:2px solid #1e293b;transition:border-color .08s;
+         cursor:crosshair;touch-action:none}
+  .stage.flash{border-color:#22c55e;box-shadow:0 0 25px rgba(34,197,94,.6)}
+  video{width:100%;height:100%;object-fit:contain;display:block;background:#000}
+
+  .sq{position:absolute;width:65px;height:65px;transform:translate(-50%,-50%);
+      border:2px dashed #e74c3c;border-radius:8px;pointer-events:none;
+      box-shadow:0 0 14px rgba(231,76,60,.6);
+      transition:border-color .2s, box-shadow .2s, left .05s, top .05s, width .1s, height .1s, border-style .2s}
+  .sq.pinned{border-color:#22c55e;border-style:solid;box-shadow:0 0 14px rgba(34,197,94,.6)}
+  .sq.flash{background:rgba(34,197,94,.4);border-color:#fff}
+
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;
+      justify-content:center;background:rgba(0,0,0,.72);
+      text-align:center;padding:16px;font-size:.85rem}
+  .overlay.hide{display:none}
+  .overlay b{color:#3b82f6}
+
+  .status-bar{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-size:.75rem}
+  .status-bar b{color:#e74c3c}
+  .status-bar b.ok{color:#22c55e}
+
+  .slider-box{background:#111827;border:1px solid #1f2937;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px}
+  .slider-box span{font-size:.75rem;color:#94a3b8;white-space:nowrap}
+  .slider-box input{flex:1;accent-color:#3b82f6;cursor:pointer}
+
+  .counter{background:#000;border:2px solid #1e293b;border-radius:14px;
+           padding:20px;text-align:center}
+  .counter span{font-size:.62rem;color:#64748b;letter-spacing:.1em;
+                text-transform:uppercase}
+  .counter b{display:block;font-size:4rem;font-family:monospace;
+             color:#22c55e;line-height:1;margin-top:6px}
+
+  .controls{display:flex;gap:10px}
+  button{flex:1;padding:18px;border-radius:12px;border:none;
+         font-weight:800;font-size:.95rem;cursor:pointer;font-family:inherit}
+  #startBtn{background:#22c55e;color:#04150b}
+  #stopBtn{background:#e74c3c;color:#fff}
+  button:disabled{opacity:.3;filter:grayscale(1);cursor:not-allowed}
+</style>
+</head>
+<body>
+
+<h1>Long-Distance LED Counter</h1>
+<p class="hint">Zoom in if needed, tap the distant LED to pin, and use a stable mount.</p>
+
+<div class="stage" id="stage">
+  <video id="video" playsinline muted autoplay></video>
+  <div class="sq" id="sq"></div>
+  <div class="overlay" id="overlay"><div><b>Press START</b></div></div>
+</div>
+
+<div class="status-bar">
+  <span>Status:</span>
+  <b id="statusText">Waiting for start...</b>
+</div>
+
+<div class="slider-box">
+  <span>Box Size: <b id="sizeVal" style="color:#e8eef7">65px</b></span>
+  <input type="range" id="sizeRange" min="30" max="200" value="65">
+</div>
+
+<div class="counter"><span>Flashes</span><b id="count">0</b></div>
+
+<div class="controls">
+  <button id="startBtn">START</button>
+  <button id="stopBtn" disabled>STOP</button>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ---- tuning parameters for long distance ---- */
+const SCAN_W = 128;       /* Higher resolution grid for long distance detail */
+const SCAN_H = 96;
+const PIXEL_JUMP = 30;    /* Sensitive threshold to catch faint distant light */
+const MIN_GAP = 80;       /* Debounce refractory period */
+
+const video   = $("video");
+const stage   = $("stage");
+const sqEl    = $("sq");
+const overlay = $("overlay");
+const statusText = $("statusText");
+const sizeRange = $("sizeRange");
+const sizeVal = $("sizeVal");
+
+const canvas = document.createElement("canvas");
+canvas.width = SCAN_W;
+canvas.height = SCAN_H;
+const ctx = canvas.getContext("2d", {willReadFrequently:true});
+
+let camOn = false, stream = null;
+let rafId = 0;
+let prevFrameData = null;
+let lastCount = 0;
+let flashCount = 0;
+
+let ledX = 0.5, ledY = 0.5;
+let isPinned = false;
+let boxSizePx = 65;
+let pulseState = false;
+
+sizeRange.addEventListener("input", e => {
+  boxSizePx = parseInt(e.target.value);
+  sizeVal.textContent = boxSizePx + "px";
+  sqEl.style.width = boxSizePx + "px";
+  sqEl.style.height = boxSizePx + "px";
+});
+
+async function start(){
+  if (camOn) return;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { 
+        facingMode: "environment", 
+        width: { ideal: 1920 }, 
+        height: { ideal: 1080 },
+        frameRate: { ideal: 60, min: 30 } 
+      },
+      audio: false
+    });
+    video.srcObject = stream;
+    await video.play();
+
+    prevFrameData = null;
+    lastCount = 0;
+    flashCount = 0;
+    isPinned = false;
+    pulseState = false;
+    $("count").textContent = "0";
+
+    camOn = true;
+    overlay.classList.add("hide");
+    $("startBtn").disabled = true;
+    $("stopBtn").disabled  = false;
+    
+    statusText.textContent = "Tap screen on the distant LED!";
+    statusText.className = "";
+    sqEl.classList.remove("pinned");
+
+    sqEl.style.left = "50%";
+    sqEl.style.top = "50%";
+    sqEl.style.width = boxSizePx + "px";
+    sqEl.style.height = boxSizePx + "px";
+
+    loop();
+
+} catch(e){
+    overlay.innerHTML = "<div><b style='color:#e74c3c'>" + e.message + "</b></div>";
+  }
+}
+
+function stop(){
+  camOn = false;
+  if (rafId){ cancelAnimationFrame(rafId); rafId = 0; }
+  if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  $("startBtn").disabled = false;
+  $("stopBtn").disabled  = true;
+  overlay.classList.remove("hide");
+  overlay.innerHTML = "<div><b>Press START</b></div>";
+  sqEl.classList.remove("flash", "pinned");
+  stage.classList.remove("flash");
+  statusText.textContent = "Waiting for start...";
+  statusText.className = "";
+}
+
+function loop(){
+  if (!camOn) return;
+  rafId = requestAnimationFrame(loop);
+
+  if (video.readyState < 2 || !video.videoWidth) return;
+
+  const vw = video.videoWidth, vh = video.videoHeight;
+  const now = performance.now();
+
+  ctx.drawImage(video, 0, 0, SCAN_W, SCAN_H);
+  const imgData = ctx.getImageData(0, 0, SCAN_W, SCAN_H);
+  const d = imgData.data;
+
+  if (isPinned) {
+    updateBoxGeometry(vw, vh);
+  }
+
+  if (!prevFrameData) {
+    prevFrameData = new Uint8ClampedArray(d);
+    return;
+  }
+
+  if (isPinned) {
+    let maxDeltaInBox = 0;
+    const targetX = Math.round(ledX * SCAN_W);
+    const targetY = Math.round(ledY * SCAN_H);
+    
+    // Scale search radius based on box size slider
+    const gridRadius = Math.max(3, Math.round((boxSizePx / 60) * 5));
+
+    // Scan the entire box area for the highest brightness spike (handles slight shaking/drifting)
+    for (let y = Math.max(0, targetY - gridRadius); y <= Math.min(SCAN_H - 1, targetY + gridRadius); y++) {
+      for (let x = Math.max(0, targetX - gridRadius); x <= Math.min(SCAN_W - 1, targetX + gridRadius); x++) {
+        const idx = (y * SCAN_W + x) * 4;
+        const currB = Math.max(d[idx], d[idx+1], d[idx+2]);
+        const prevB = Math.max(prevFrameData[idx], prevFrameData[idx+1], prevFrameData[idx+2]);
+        const delta = currB - prevB;
+        if (delta > maxDeltaInBox) {
+          maxDeltaInBox = delta;
+        }
+      }
+    }
+
+    // Schmitt-trigger flash detection
+    if (!pulseState) {
+      if (maxDeltaInBox >= PIXEL_JUMP && (now - lastCount) > MIN_GAP) {
+        lastCount = now;
+        flashCount++;
+        pulseState = true;
+        $("count").textContent = flashCount;
+        sqEl.classList.add("flash");
+        stage.classList.add("flash");
+        setTimeout(() => {
+          sqEl.classList.remove("flash");
+          stage.classList.remove("flash");
+        }, 80);
+      }
+    } else {
+      if (maxDeltaInBox < (PIXEL_JUMP / 2.5)) {
+        pulseState = false;
+      }
+    }
+  }
+
+  prevFrameData.set(d);
+}
+
+function updateBoxGeometry(vw, vh) {
+  const cw = stage.clientWidth, ch = stage.clientHeight;
+  if (!cw || !ch) return;
+
+  const scale = Math.min(cw / vw, ch / vh);
+  const renderW = vw * scale;
+  const renderH = vh * scale;
+  
+  const offsetX = (cw - renderW) / 2;
+  const offsetY = (ch - renderH) / 2;
+
+  const screenX = offsetX + (ledX * renderW);
+  const screenY = offsetY + (ledY * renderH);
+
+  sqEl.style.left = screenX + "px";
+  sqEl.style.top  = screenY + "px";
+  sqEl.style.width = boxSizePx + "px";
+  sqEl.style.height = boxSizePx + "px";
+}
+
+function handleStageTap(clientX, clientY) {
+  if (!camOn) return;
+  const rect = stage.getBoundingClientRect();
+  const cw = stage.clientWidth, ch = stage.clientHeight;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (!cw || !ch || !vw || !vh) return;
+
+  const scale = Math.min(cw / vw, ch / vh);
+  const renderW = vw * scale;
+  const renderH = vh * scale;
+  
+  const offsetX = (cw - renderW) / 2;
+  const offsetY = (ch - renderH) / 2;
+
+  const clickX = clientX - rect.left;
+  const clickY = clientY - rect.top;
+
+  const vidX = clickX - offsetX;
+  const vidY = clickY - offsetY;
+
+  if (vidX >= 0 && vidX <= renderW && vidY >= 0 && vidY <= renderH) {
+    ledX = vidX / renderW;
+    ledY = vidY / renderH;
+    isPinned = true;
+    statusText.textContent = "Long-Distance Box Pinned!";
+    statusText.className = "ok";
+    sqEl.classList.add("pinned");
+  }
+}
+
+stage.addEventListener("click", e => handleStageTap(e.clientX, e.clientY));
+stage.addEventListener("pointerdown", e => handleStageTap(e.clientX, e.clientY));
+
+$("startBtn").addEventListener("click", start);
+$("stopBtn").addEventListener("click", stop);
+window.addEventListener("pagehide", stop);
+</script>
+</body>
+</html>
