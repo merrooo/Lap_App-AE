@@ -1,0 +1,7 @@
+{
+  "name": "TVJ App",
+  "type": "custom",
+  "integrations": {
+    "capacitor": {}
+  }
+}

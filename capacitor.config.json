@@ -1,0 +1,15 @@
+{
+  "appId": "com.merrooo.lapapp",
+  "appName": "Lap",
+  "webDir": "Lab",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

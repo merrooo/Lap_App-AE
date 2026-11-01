@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Lap</string>
+    <string name="title_activity_main">Lap</string>
+    <string name="package_name">com.merrooo.lapapp</string>
+    <string name="custom_url_scheme">com.merrooo.lapapp</string>
+</resources>
+

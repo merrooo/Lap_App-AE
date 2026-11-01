@@ -1,0 +1,162 @@
+🏗️ PART 1 — One-Time Setup (per new app, ~10 min)
+Step 1 — Create the GitHub repository
+Go to https://github.com/new
+
+Name it (e.g. App-2)
+
+Do NOT check "Add README" or ".gitignore"
+
+Click Create repository
+
+Copy the HTTPS URL (https://github.com/merrooo/App-2.git)
+
+Step 2 — Connect your local project to it
+powershell
+cd C:\Users\Admin\Desktop\App-2
+git init
+git branch -M main
+git remote add origin https://github.com/merrooo/App-2.git
+If the project is a copy of TVJ-APP, strip the old history first:
+
+powershell
+Remove-Item -Recurse -Force .git
+git init
+git branch -M main
+git remote add origin https://github.com/merrooo/App-2.git
+Step 3 — Set a unique identity in 3 files
+File	Field	Example
+capacitor.config.json	appId	com.merrooo.app2
+capacitor.config.json	appName	App 2
+android/app/build.gradle	applicationId	com.merrooo.app2
+android/app/src/main/res/values/strings.xml	app_name	App 2
+Rule: every app must have a different appId. Two apps with com.yourcompany.* or com.example.* will collide on the phone and refuse to install.
+
+Step 4 — Add camera permission (if the app uses the camera)
+Open android/app/src/main/AndroidManifest.xml, add inside <manifest>:
+
+xml
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-feature android:name="android.hardware.camera" android:required="false" />
+<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+Step 5 — Copy the working workflow
+powershell
+mkdir .github\workflows -Force
+Copy-Item C:\Users\Admin\Desktop\TVJ-APP\.github\workflows\android-build.yml `
+          .github\workflows\android-build.yml
+The workflow is 100% reusable — no edits needed. All the fixes are baked in:
+
+Node 22 (Capacitor CLI 8 requirement)
+
+JDK 21 (Capacitor 7 requirement)
+
+No setup-android action (avoids the removed tools package)
+
+Gradle pinned to 8.14.3 (AGP compatibility)
+
+Absolute keystore path (fixes validateSigningRelease failure)
+
+Ensure index.html exists step
+
+chmod +x gradlew
+
+Step 6 — Add the 4 GitHub secrets
+Go to https://github.com/merrooo/App-2/settings/secrets/actions → New repository secret × 4:
+
+Name	Value
+ANDROID_KEYSTORE_BASE64	Base64 of release.keystore
+ANDROID_KEYSTORE_PASSWORD	your keystore password
+ANDROID_KEY_ALIAS	tvj-app-release (or yours)
+ANDROID_KEY_PASSWORD	your key password
+To re-copy the Base64 any time:
+
+powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\Users\Admin\Desktop\TVJ-APP\release.keystore")) | Set-Clipboard
+Step 7 — Protect the keystore from being committed
+powershell
+Add-Content .gitignore "`nrelease.keystore`n*.keystore`n*.jks"
+Step 8 — First push
+powershell
+git add -A
+git commit -m "Initial commit"
+git push -u origin main
+git tag v1.0.0
+git push origin v1.0.0
+Open https://github.com/merrooo/App-2/actions → watch the build → ~6 min → APK on /releases.
+
+🔄 PART 2 — Update Loop (every change, ~2 min)
+The 4-command loop
+powershell
+git add -A
+git commit -m "describe your change"
+git push origin main
+
+# then re-tag to trigger the workflow:
+git tag -d v1.0.5 2>$null
+git push origin :refs/tags/v1.0.5 2>$null
+git tag v1.0.5
+git push origin v1.0.5
+Wait ~6 min → new APK at /releases.
+
+⚠️ Why you must re-tag every time
+Your workflow triggers on tags: ['v*'], not on push: branches. Pushing to main updates the code but does not build anything. The tag is what starts the build.
+
+The tag must move to the new commit. A tag is a fixed pointer — it doesn't follow new commits. So delete + recreate it every time.
+
+🔍 Verify the tag moved (30 sec)
+powershell
+git log --oneline -3
+git rev-parse v1.0.5
+git rev-parse HEAD
+Both hashes must be identical. If v1.0.5 shows an older commit hash, delete + re-push it.
+
+🎯 PART 3 — What we debugged (so you never hit it again)
+#	Error you saw	Root cause	Fix (already in the workflow)
+1	Failed to find package 'tools'	setup-android@v3 installs removed tools package on Ubuntu 26.04	Removed the action entirely — SDK is pre-installed
+2	Capacitor CLI requires Node >= 22	Workflow used Node 20	node-version: 22
+3	SelfResolvingDependency NoClassDefFoundError	Gradle 9.7.1 incompatible with AGP 8.13	Pin wrapper to gradle-8.14.3
+4	Keystore file .../daemon/8.14.3/release.keystore not found	Relative path resolved against Gradle's working dir	Absolute path with ${{ github.workspace }}
+5	Camera preview shows "play" button (empty <video>)	CAMERA permission missing from manifest	Add 3 manifest lines
+6	"App not installed — duplicate package"	appId still com.yourcompany.* from template	Unique applicationId per app
+7	git push rejected non-fast-forward	Remote had README from repo creation	git push --force on first push, then normal
+🚀 PART 4 — Cheat Sheet
+Files you edit for a new app
+text
+capacitor.config.json                   ← appId, appName
+android/app/build.gradle                ← applicationId (match appId)
+android/app/src/main/res/values/strings.xml   ← app_name
+android/app/src/main/AndroidManifest.xml ← CAMERA permission
+Files you never edit
+text
+.github/workflows/android-build.yml     ← copy as-is
+release.keystore                        ← same for all apps, never commit
+Where the APK ends up
+Location	Use case
+/releases → TVJ-v1.0.5.apk	Share, install on phones
+/actions → run → Artifacts → APK.zip	Backup / if release step failed
+Install on phone
+Download TVJ-v1.0.5.apk
+
+Tap → Allow install from unknown sources
+
+If it says "duplicate": uninstall the old app first, then reinstall
+
+The one-line "rebuild everything" command
+powershell
+git add -A; git commit -m "update"; git push origin main; git tag -d v1.0.5 2>$null; git push origin :refs/tags/v1.0.5 2>$null; git tag v1.0.5; git push origin v1.0.5
+🧠 PART 5 — Rules of thumb
+Never paste release.keystore or its Base64 into any chat, AI, or commit. It's the app's identity.
+
+Back up release.keystore to a password manager (Bitwarden, 1Password). Lose it → never update the Play Store app again.
+
+Same keystore for all your apps is fine — package name distinguishes them. But one leak compromises all.
+
+appId must be unique and stable. Changing it later means users must uninstall/reinstall.
+
+Tags must be deleted + recreated for every build. Pushing main alone doesn't trigger.
+
+Check git status before commit — if TVJ.html isn't listed as modified, the file wasn't saved in VS Code.
+
+git add -A (not specific files) whenever you've edited more than one thing.
+
+Bottom line: for the next app, you spend ~10 min of setup (Steps 1–8), then ~2 min per update (the 4-command loop). The workflow file, keystore, and secrets are all reused as-is — zero debugging needed. Every issue you hit is already solved and baked into the YAML.
+
